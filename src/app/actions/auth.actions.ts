@@ -1,0 +1,136 @@
+'use server';
+
+import { cookies } from 'next/headers';
+import crypto from 'crypto';
+import connectToDb from '../lib/utils/db';
+import User from '../lib/models/User';
+import Player from '../lib/models/Player';
+import { hashPassword } from './user.actions';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'genie_quiz_secret_key_ultra_secure_2026';
+const COOKIE_NAME = 'genie_session';
+
+// Fonctions utilitaires internes pour le jeton : userId:role:timestamp|signature
+function generateToken(userId: string, role: string): string {
+  const timestamp = Date.now();
+  const payload = `${userId}:${role}:${timestamp}`;
+  const signature = crypto.createHmac('sha256', JWT_SECRET).update(payload).digest('hex');
+  return `${payload}|${signature}`;
+}
+
+// export async function hashPassword(password: string): Promise<string> {
+//   return crypto.createHash('sha256').update(password).digest('hex');
+// }
+
+/**
+ * 1. INSCRIPTION ÉLÈVE
+ */
+export async function registerPlayer(formData: FormData) {
+  await connectToDb();
+
+  const pseudo = formData.get('pseudo') as string;
+  const telephone = formData.get('telephone') as string;
+  const school = formData.get('school') as string;
+  const password = formData.get('password') as string;
+
+  if (!pseudo || !telephone || !school || !password) {
+    return { success: false, error: 'Tous les champs sont obligatoires.' };
+  }
+
+  try {
+    // Vérifier si le téléphone existe déjà
+    const existingUser = await User.findOne({ telephone: telephone.trim() });
+    if (existingUser) {
+      return { success: false, error: 'Ce numéro de téléphone est déjà utilisé.' };
+    }
+
+    const hashedPassword = await hashPassword(password);
+
+    // Création de l'utilisateur de base (Rôle fixé à 'PLAYER' selon l'interface User)
+    const newUser = await User.create({
+      pseudo: pseudo.trim(),
+      telephone: telephone.trim(),
+      solde: 0,
+      role: 'PLAYER',
+      secure: hashedPassword,
+    });
+
+    // Création du profil Player associé
+    await Player.create({
+      userId: newUser._id,
+      level: 0,
+      school: school.trim(),
+      recharges: [],
+      metrics: { totalScore: 0, partiesJouees: 0, MeilleurScore: 0 }
+    });
+
+    // Génération et injection du cookie de session (7 jours)
+    const token = generateToken(newUser._id.toString(), newUser.role);
+    
+    (await cookies()).set(COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60, // 7 jours
+      path: '/',
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Erreur lors de l'inscription." };
+  }
+}
+
+/**
+ * 2. CONNEXION UTILISATEUR (Élève, Modérateur ou Admin)
+ */
+export async function loginUser(formData: FormData) {
+  await connectToDb();
+
+  const telephone = formData.get('telephone') as string;
+  const password = formData.get('password') as string;
+
+  if (!telephone || !password) {
+    return { success: false, error: 'Téléphone et mot de passe requis.' };
+  }
+
+  try {
+    // Récupérer l'utilisateur avec le champ 'secure' masqué par défaut
+    const user = await User.findOne({ telephone: telephone.trim() }).select('+secure');
+    if (!user || !user.secure) {
+      return { success: false, error: 'Identifiants incorrects.' };
+    }
+
+    const hashedPassword = await hashPassword(password);
+    if (user.secure !== hashedPassword) {
+      return { success: false, error: 'Identifiants incorrects.' };
+    }
+
+    // Génération et injection du cookie
+    const token = generateToken(user._id.toString(), user.role);
+    
+    (await cookies()).set(COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60,
+      path: '/',
+    });
+
+    return { success: true, role: user.role };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Erreur lors de la connexion.' };
+  }
+}
+
+/**
+ * 3. DÉCONNEXION
+ */
+export async function logoutUser() {
+  (await cookies()).set(COOKIE_NAME, '', {
+    httpOnly: true,
+    expires: new Date(0),
+    path: '/',
+  });
+  return { success: true };
+}

@@ -16,7 +16,7 @@ interface CreateAgentParams {
 /**
  * Hache un mot de passe en SHA-256 de manière native
  */
-function hashPassword(password: string): string {
+export async function hashPassword(password: string): Promise<string> {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
 
@@ -57,7 +57,7 @@ export async function createAgent(params: CreateAgentParams) {
     }
 
     // 3. Hachage du mot de passe en SHA-256
-    const hashedPassword = hashPassword(secure);
+    const hashedPassword = await hashPassword(secure);
 
     // 4. Création de l'utilisateur de base
     const newUser = await User.create({
@@ -116,7 +116,7 @@ export async function updateUser(
     }
 
     if (data.secure?.trim()) {
-      updateData.secure = hashPassword(data.secure);
+      updateData.secure = await hashPassword(data.secure);
     }
 
     const updatedUser = await User.findByIdAndUpdate(userId, { $set: updateData }, { new: true });
