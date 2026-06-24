@@ -16,6 +16,9 @@ import {
   PlugInIcon,
   TableIcon,
   UserCircleIcon,
+  TaskIcon,
+  FolderIcon,
+  GroupIcon,
 } from "../icons/index";
 import SidebarWidget from "./SidebarWidget";
 
@@ -30,35 +33,42 @@ const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
-    subItems: [{ name: "Ecommerce", path: "/", pro: false }],
-  },
-  {
-    icon: <CalenderIcon />,
-    name: "Calendar",
-    path: "/calendar",
+    subItems: [{ name: "Accueil", path: "/", pro: false }],
   },
   {
     icon: <UserCircleIcon />,
-    name: "User Profile",
+    name: "Profil",
     path: "/profile",
   },
-
   {
-    name: "Forms",
-    icon: <ListIcon />,
-    subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
+    icon: <CalenderIcon />,
+    name: "Calendrier",
+    path: "/calendar",
   },
   {
-    name: "Tables",
+    icon: <GroupIcon />,
+    name: "Agent",
+    subItems: [
+      { name: "Autorisations", path: "/autorisations", pro: false },
+      { name: "Retraits", path: "/retraits", pro: false },
+    ],
+  },
+  {
+    name: "Formulaires",
+    icon: <ListIcon />,
+    subItems: [{ name: "Éléments de formulaire", path: "/form-elements", pro: false }],
+  },
+  {
+    name: "Tableaux",
     icon: <TableIcon />,
-    subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
+    subItems: [{ name: "Tableaux simples", path: "/basic-tables", pro: false }],
   },
   {
     name: "Pages",
     icon: <PageIcon />,
     subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
+      { name: "Page vierge", path: "/blank", pro: false },
+      { name: "Erreur 404", path: "/error-404", pro: false },
     ],
   },
 ];
@@ -66,30 +76,30 @@ const navItems: NavItem[] = [
 const othersItems: NavItem[] = [
   {
     icon: <PieChartIcon />,
-    name: "Charts",
+    name: "Graphiques",
     subItems: [
-      { name: "Line Chart", path: "/line-chart", pro: false },
-      { name: "Bar Chart", path: "/bar-chart", pro: false },
+      { name: "Courbe", path: "/line-chart", pro: false },
+      { name: "Barres", path: "/bar-chart", pro: false },
     ],
   },
   {
     icon: <BoxCubeIcon />,
-    name: "UI Elements",
+    name: "Composants UI",
     subItems: [
-      { name: "Alerts", path: "/alerts", pro: false },
+      { name: "Alertes", path: "/alerts", pro: false },
       { name: "Avatar", path: "/avatars", pro: false },
       { name: "Badge", path: "/badge", pro: false },
-      { name: "Buttons", path: "/buttons", pro: false },
+      { name: "Boutons", path: "/buttons", pro: false },
       { name: "Images", path: "/images", pro: false },
-      { name: "Videos", path: "/videos", pro: false },
+      { name: "Vidéos", path: "/videos", pro: false },
     ],
   },
   {
     icon: <PlugInIcon />,
-    name: "Authentication",
+    name: "Authentification",
     subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
+      { name: "Connexion", path: "/signin", pro: false },
+      { name: "Inscription", path: "/signup", pro: false },
     ],
   },
 ];
@@ -348,7 +358,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Menu"
+                  "Menu principal"
                 ) : (
                   <HorizontaLDots />
                 )}

@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/utils/auth';
+import { getCurrentUserDetailed } from '@/app/actions/auth.actions';
 import AdminLayoutClient from './AdminLayoutClient';
 
 export default async function AdminLayout({
@@ -9,11 +10,11 @@ export default async function AdminLayout({
 }) {
   const session = await getSession();
 
-  // Non connecté → redirection vers la page de connexion
   if (!session) {
     redirect('/signin');
   }
 
-  // Session valide → rendu normal du layout
-  return <AdminLayoutClient>{children}</AdminLayoutClient>;
+  const user = await getCurrentUserDetailed();
+
+  return <AdminLayoutClient user={user}>{children}</AdminLayoutClient>;
 }

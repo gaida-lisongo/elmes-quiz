@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import connectToDb from '../lib/utils/db';
 import User from '../lib/models/User';
 import Player from '../lib/models/Player';
+import Agent from '../lib/models/Agent';
 import { hashPassword } from './user.actions';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'genie_quiz_secret_key_ultra_secure_2026';
@@ -123,14 +124,65 @@ export async function loginUser(formData: FormData) {
   }
 }
 
-/**
- * 3. DÉCONNEXION
- */
+/** 3. DÉCONNEXION */
 export async function logoutUser() {
   (await cookies()).set(COOKIE_NAME, '', {
-    httpOnly: true,
-    expires: new Date(0),
-    path: '/',
+    httpOnly: true, expires: new Date(0), path: '/',
   });
   return { success: true };
+}
+
+/** 4. RÉCUPÉRER L'UTILISATEUR CONNECTÉ DÉTAILLÉ */
+export async function getCurrentUserDetailed() {
+  const { getSession } = await import('@/lib/utils/auth');
+  const session = await getSession();
+  if (!session) return null;
+
+  await connectToDb();
+
+  try {
+    const user = await User.findById(session.userId).select('+secure').lean();
+    if (!user) return null;
+
+    const base = {
+      _id: user._id.toString(),
+      pseudo: user.pseudo,
+      telephone: user.telephone,
+      email: user.email || null,
+      photo: user.photo || null,
+      solde: user.solde,
+      role: user.role,
+    };
+
+    // Si PLAYER → récupérer le profil Player
+    if (user.role === 'PLAYER') {
+      const player = await Player.findOne({ userId: user._id }).lean();
+      if (!player) return { ...base, profile: null };
+      return {
+        ...base,
+        profile: {
+          type: 'PLAYER',
+          level: player.level,
+          school: player.school,
+          metrics: player.metrics,
+        },
+      };
+    }
+
+    // Si MOD ou ADMIN → récupérer le profil Agent
+    const agent = await Agent.findOne({ userId: user._id }).lean();
+    if (!agent) return { ...base, profile: { type: user.role, permissions: [], retraits: [], tickets: [] } };
+
+    return {
+      ...base,
+      profile: {
+        type: user.role,
+        permissions: agent.permissions,
+        retraits: agent.retraits,
+        tickets: agent.tickets,
+      },
+    };
+  } catch {
+    return null;
+  }
 }
