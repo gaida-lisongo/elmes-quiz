@@ -1,20 +1,32 @@
 'use client';
 
-import React from 'react';
-import { AgentData } from '@/types/agent';
+import React, { useState } from 'react';
+import { AgentData, PERMISSION_LABELS } from '@/types/agent';
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import Badge from '@/components/ui/badge/Badge';
 import Button from '@/components/ui/button/Button';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import PermissionEditor from '@/components/agent/PermissionEditor';
 
 interface AgentDetailProps {
     agent: AgentData;
 }
 
+const permissionColor = (perm: string): 'primary' | 'success' | 'warning' | 'info' => {
+  const colors: Record<string, 'primary' | 'success' | 'warning' | 'info'> = {
+    categories: 'primary',
+    parties: 'info',
+    recharges: 'success',
+    joueurs: 'warning',
+  };
+  return colors[perm] || 'info';
+};
+
 export default function AgentDetailClient({ agent }: AgentDetailProps) {
     const router = useRouter();
+    const [permEditorOpen, setPermEditorOpen] = useState(false);
     const user = agent.userId;
 
     const totalRetraits = agent.retraits.reduce((sum, r) => sum + r.amount, 0);
@@ -71,7 +83,7 @@ export default function AgentDetailClient({ agent }: AgentDetailProps) {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => setPermEditorOpen(true)}>
                             Modifier les permissions
                         </Button>
                     </div>
@@ -86,7 +98,9 @@ export default function AgentDetailClient({ agent }: AgentDetailProps) {
                     {agent.permissions.length > 0 && (
                         <div className="mt-3 flex flex-wrap gap-2">
                             {agent.permissions.map((perm, i) => (
-                                <Badge key={i} size="sm" color="info">{perm}</Badge>
+                                <Badge key={i} size="sm" color={permissionColor(perm)}>
+                                    {PERMISSION_LABELS[perm] || perm}
+                                </Badge>
                             ))}
                         </div>
                     )}
@@ -147,6 +161,14 @@ export default function AgentDetailClient({ agent }: AgentDetailProps) {
                     </div>
                 )}
             </div>
+
+            <PermissionEditor
+                isOpen={permEditorOpen}
+                onClose={() => setPermEditorOpen(false)}
+                agentId={agent._id}
+                currentPermissions={agent.permissions}
+                onSuccess={() => router.refresh()}
+            />
         </div>
     );
 }

@@ -1,3 +1,17 @@
+export type AgentRole = 'MOD' | 'ADMIN';
+
+export const ROLE_PERMISSIONS: Record<AgentRole, string[]> = {
+  MOD: ['categories', 'parties'],
+  ADMIN: ['recharges', 'joueurs'],
+};
+
+export const PERMISSION_LABELS: Record<string, string> = {
+  categories: 'Gestion des catégories',
+  parties: 'Gestion des parties',
+  recharges: 'Gestion des recharges',
+  joueurs: 'Gestion des joueurs',
+};
+
 export interface AgentRetrait {
   _id: string;
   amount: number;

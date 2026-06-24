@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AgentData } from '@/types/agent';
+import { AgentData, PERMISSION_LABELS } from '@/types/agent';
 import Badge from '@/components/ui/badge/Badge';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -10,9 +10,14 @@ interface AgentCardProps {
   agent: AgentData;
 }
 
-const statusRetraitColor = (total: number) => {
-  if (total === 0) return 'light';
-  return 'warning';
+const permissionColor = (perm: string) => {
+  const colors: Record<string, 'primary' | 'success' | 'warning' | 'info'> = {
+    categories: 'primary',
+    parties: 'info',
+    recharges: 'success',
+    joueurs: 'warning',
+  };
+  return colors[perm] || 'info';
 };
 
 export default function AgentCard({ agent }: AgentCardProps) {
@@ -61,8 +66,19 @@ export default function AgentCard({ agent }: AgentCardProps) {
         </Badge>
       </div>
 
+      {/* Badges des permissions */}
+      {agent.permissions.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {agent.permissions.map((perm) => (
+            <Badge key={perm} size="sm" color={permissionColor(perm)} variant="light">
+              {PERMISSION_LABELS[perm] || perm}
+            </Badge>
+          ))}
+        </div>
+      )}
+
       {/* Statistiques */}
-      <div className="mt-4 grid grid-cols-3 gap-3">
+      <div className="mt-3 grid grid-cols-3 gap-3">
         <div className="rounded-lg bg-gray-50 p-3 text-center dark:bg-gray-800/50">
           <p className="text-xs text-gray-500 dark:text-gray-400">Permissions</p>
           <p className="mt-0.5 text-lg font-semibold text-gray-800 dark:text-white/90">

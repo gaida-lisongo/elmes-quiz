@@ -37,7 +37,7 @@ export async function getAgents() {
 
 /**
  * Crée un utilisateur de type staff/agent, hache son mot de passe,
- * puis initialise son document Agent sans permissions initiales.
+ * puis initialise son document Agent sans permissions (à attribuer manuellement).
  */
 export async function createAgent(params: CreateAgentParams) {
   try {
@@ -65,16 +65,16 @@ export async function createAgent(params: CreateAgentParams) {
       telephone: telephone.trim(),
       email: email?.trim() || undefined,
       role: role,
-      secure: hashedPassword, // Stocké en sécurité
+      secure: hashedPassword,
       solde: 0
     });
 
-    // 5. Création du profil Agent vierge lié à cet utilisateur
+    // 5. Création du profil Agent sans permissions (attribuées manuellement ensuite)
     const newAgent = await Agent.create({
       userId: newUser._id,
-      permissions: [], // Sans permissions par défaut
-      retraits: [],    // Sans retraits
-      tickets: []      // Sans tickets
+      permissions: [], // Zéro permission à la création
+      retraits: [],
+      tickets: []
     });
 
     // 6. Récupérer le document complet peuplé pour le renvoyer proprement à l'interface
