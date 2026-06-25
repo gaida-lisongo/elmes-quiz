@@ -17,6 +17,7 @@ import { getCurrentUserDetailed } from "@/app/actions/auth.actions";
 import { getLeaderboard } from "@/app/actions/leaderboard.actions";
 import { getAllCategories, getAllCategoriesAdmin } from "@/app/actions/categorie.actions";
 import { getPartiesStats } from "@/app/actions/partieStats.actions";
+import { getAgentMetrics } from "@/app/actions/agentMetrics.actions";
 
 export const metadata: Metadata = {
   title: "Dashboard | Quiz Genie",
@@ -33,50 +34,31 @@ export default async function Ecommerce() {
       pseudo={user.pseudo}
       role={user.role}
       solde={user.solde}
+      level={user?.profile?.level}
     />
   ) : undefined;
 
+  // ── Métriques agents (ADMIN / MOD) : chiffre d'affaires + joueurs ──
+  const { revenue, totalPlayers } = await getAgentMetrics();
+
   /* ── Métriques dynamiques selon le rôle ── */
   const metrics =
-    user?.role === "ADMIN"
+    user?.role === "ADMIN" || user?.role === "MOD"
       ? [
           {
-            title: "Revenu Total",
-            total: "$18,240",
-            rate: "12.5%",
-            levelUp: true,
+            title: "Chiffre d'affaires",
+            total: `${revenue.toLocaleString()} FC`,
+            rate: "",
             icon: (
               <DollarLineIcon className="text-gray-800 size-6 dark:text-white/90" />
             ),
           },
           {
-            title: "Joueurs Actifs",
-            total: "1,482",
-            rate: "8.7%",
-            levelUp: true,
+            title: "Joueurs inscrits",
+            total: totalPlayers,
+            rate: "",
             icon: (
               <GroupIcon className="text-gray-800 size-6 dark:text-white/90" />
-            ),
-          },
-        ]
-      : user?.role === "MOD"
-      ? [
-          {
-            title: "Parties Créées",
-            total: "342",
-            rate: "5.2%",
-            levelUp: true,
-            icon: (
-              <BoxIconLine className="text-gray-800 size-6 dark:text-white/90" />
-            ),
-          },
-          {
-            title: "Catégories",
-            total: "8",
-            rate: "2",
-            levelUp: true,
-            icon: (
-              <ShootingStarIcon className="text-gray-800 size-6 dark:text-white/90" />
             ),
           },
         ]
