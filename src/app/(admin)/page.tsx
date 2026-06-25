@@ -18,6 +18,7 @@ import { getLeaderboard } from "@/app/actions/leaderboard.actions";
 import { getAllCategories, getAllCategoriesAdmin } from "@/app/actions/categorie.actions";
 import { getPartiesStats } from "@/app/actions/partieStats.actions";
 import { getAgentMetrics } from "@/app/actions/agentMetrics.actions";
+import { getEquipesCount } from "@/app/actions/equipe.actions";
 
 export const metadata: Metadata = {
   title: "Dashboard | Quiz Genie",
@@ -28,6 +29,10 @@ export default async function Ecommerce() {
   const user = await getCurrentUserDetailed();
   const { top10 } = await getLeaderboard();
 
+  // ── Métriques agents (ADMIN / MOD) : chiffre d'affaires + joueurs ──
+  const { revenue, totalPlayers } = await getAgentMetrics();
+  const equipesCount = await getEquipesCount();
+
   /* ── Badge du compte connecté ── */
   const accountBadge = user ? (
     <AccountBadge
@@ -35,11 +40,9 @@ export default async function Ecommerce() {
       role={user.role}
       solde={user.solde}
       level={user?.profile?.level}
+      equipesCount={equipesCount}
     />
   ) : undefined;
-
-  // ── Métriques agents (ADMIN / MOD) : chiffre d'affaires + joueurs ──
-  const { revenue, totalPlayers } = await getAgentMetrics();
 
   /* ── Métriques dynamiques selon le rôle ── */
   const metrics =
