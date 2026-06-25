@@ -4,14 +4,15 @@ import GenericDashboard from "@/components/Dashboard/GenericDashboard";
 import AccountBadge from "@/components/Dashboard/AccountBadge";
 import CarouselCards from "@/components/Dashboard/CarouselCards";
 import type { CarouselCardItem } from "@/components/Dashboard/CarouselCards";
+import LeaderboardTable from "@/components/Dashboard/LeaderboardTable";
 import MonthlySalesChart from "@/components/ecommerce/MonthlySalesChart";
 import MonthlyTarget from "@/components/ecommerce/MonthlyTarget";
-import RecentOrders from "@/components/ecommerce/RecentOrders";
 import {
   ShootingStarIcon,
   DollarLineIcon,
 } from "@/icons";
 import { getCurrentUserDetailed } from "@/app/actions/auth.actions";
+import { getLeaderboard } from "@/app/actions/leaderboard.actions";
 
 export const metadata: Metadata = {
   title:
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
 
 export default async function Ecommerce() {
   const user = await getCurrentUserDetailed();
+  const { top10 } = await getLeaderboard();
 
   /* ── Badge du compte connecté ── */
   const accountBadge = user ? (
@@ -98,7 +100,7 @@ export default async function Ecommerce() {
       carouselComponent={
         <CarouselCards title="Latest Highlights" cards={carouselCards} />
       }
-      recentOrdersTable={<RecentOrders />}
+      recentOrdersTable={<LeaderboardTable initialData={top10} />}
     />
   );
 }
