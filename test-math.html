@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/katex.min.js"></script>
+</head>
+<body>
+  <h2>Test KaTeX avec \text{}</h2>
+  
+  <div id="test1">
+    <h3>Test 1: \text{Que  vaut  x?} (espaces multiples)</h3>
+    <div id="output1"></div>
+  </div>
+  
+  <div id="test2">
+    <h3>Test 2: \text{Que~ vaut~ x?} (avec ~)</h3>
+    <div id="output2"></div>
+  </div>
+  
+  <div id="test3">
+    <h3>Test 3: \begin{aligned}2x+3=1\\\text{Que~ vaut~ x?}\end{aligned}</h3>
+    <div id="output3"></div>
+  </div>
+  
+  <script>
+    try {
+      // Test 1
+      katex.render("\\text{Que  vaut  x?}", document.getElementById("output1"), {
+        displayMode: true,
+        throwOnError: false
+      });
+    } catch(e) {
+      document.getElementById("output1").innerHTML = "Erreur: " + e.message;
+    }
+    
+    try {
+      // Test 2
+      katex.render("\\text{Que~ vaut~ x?}", document.getElementById("output2"), {
+        displayMode: true,
+        throwOnError: false
+      });
+    } catch(e) {
+      document.getElementById("output2").innerHTML = "Erreur: " + e.message;
+    }
+    
+    try {
+      // Test 3
+      katex.render("\\begin{aligned}2x+3=1\\\\\\text{Que~ vaut~ x?}\\end{aligned}", document.getElementById("output3"), {
+        displayMode: true,
+        throwOnError: false
+      });
+    } catch(e) {
+      document.getElementById("output3").innerHTML = "Erreur: " + e.message;
+    }
+  </script>
+</body>
+</html>

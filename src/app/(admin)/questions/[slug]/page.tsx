@@ -1,7 +1,8 @@
 import { Metadata } from "next";
-import Link from "next/link";
 import connectToDb from "@/app/lib/utils/db";
 import Categorie from "@/app/lib/models/Categorie";
+import { redirect } from "next/navigation";
+import QuestionsClient from "./QuestionsClient";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -21,19 +22,15 @@ export default async function QuestionsSlugPage({ params }: Props) {
   await connectToDb();
   const cat = await Categorie.findOne({ slug }).lean();
 
+  if (!cat) {
+    redirect("/");
+  }
+
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white/90 mb-2">
-          Questions — {cat?.designation ?? slug}
-        </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mb-6">
-          Gérez les questions de la catégorie <strong>{cat?.designation ?? slug}</strong>.
-        </p>
-        <span className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white">
-          Page en cours de développement
-        </span>
-      </div>
-    </div>
+    <QuestionsClient
+      categorieId={cat._id.toString()}
+      designation={cat.designation}
+      slug={cat.slug}
+    />
   );
 }

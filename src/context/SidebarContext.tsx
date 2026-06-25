@@ -18,8 +18,25 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export const useSidebar = () => {
   const context = useContext(SidebarContext);
+  // Pendant le SSR, retourner des valeurs par défaut au lieu de lancer une erreur
   if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider");
+    // Vérifier si on est côté client
+    if (typeof window !== 'undefined') {
+      throw new Error("useSidebar must be used within a SidebarProvider");
+    }
+    // Retourner des valeurs par défaut pour le SSR
+    return {
+      isExpanded: true,
+      isMobileOpen: false,
+      isHovered: false,
+      activeItem: null,
+      openSubmenu: null,
+      toggleSidebar: () => {},
+      toggleMobileSidebar: () => {},
+      setIsHovered: () => {},
+      setActiveItem: () => {},
+      toggleSubmenu: () => {},
+    };
   }
   return context;
 };
