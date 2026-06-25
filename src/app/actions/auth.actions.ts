@@ -91,19 +91,26 @@ export async function loginUser(formData: FormData) {
   const telephone = formData.get('telephone') as string;
   const password = formData.get('password') as string;
 
+  console.log('loginUser called with:', { telephone, password });
+
   if (!telephone || !password) {
+    console.log('Missing telephone or password');
     return { success: false, error: 'Téléphone et mot de passe requis.' };
   }
 
   try {
     // Récupérer l'utilisateur avec le champ 'secure' masqué par défaut
     const user = await User.findOne({ telephone: telephone.trim() }).select('+secure');
+    console.log('User found:', user ? 'yes' : 'no');
     if (!user || !user.secure) {
+      console.log('User not found or no secure field');
       return { success: false, error: 'Identifiants incorrects.' };
     }
 
     const hashedPassword = await hashPassword(password);
+    console.log('Password comparison:', { stored: user.secure, provided: hashedPassword });
     if (user.secure !== hashedPassword) {
+      console.log('Password mismatch');
       return { success: false, error: 'Identifiants incorrects.' };
     }
 
@@ -118,8 +125,10 @@ export async function loginUser(formData: FormData) {
       path: '/',
     });
 
+    console.log('Login successful, token set');
     return { success: true, role: user.role };
   } catch (error: any) {
+    console.error('Login error:', error);
     return { success: false, error: error.message || 'Erreur lors de la connexion.' };
   }
 }

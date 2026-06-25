@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { loginUser } from '@/app/actions/auth.actions';
 
 const inputClass =
-  'h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800';
+  'h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800';
 
 export default function SignInForm() {
   const router = useRouter();
@@ -21,6 +21,8 @@ export default function SignInForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    console.log("Clicked login", {telephone, password});
     setError('');
     setLoading(true);
 
@@ -29,18 +31,22 @@ export default function SignInForm() {
       formData.append('telephone', telephone);
       formData.append('password', password);
 
+      console.log("Calling loginUser...");
       const result = await loginUser(formData);
+      console.log("loginUser result:", result);
 
       if (!result.success) {
         setError(result.error || 'Identifiants incorrects.');
-        setLoading(false);
         return;
       }
 
+      console.log("Login successful, redirecting...");
       router.push('/');
       router.refresh();
     } catch (err: any) {
+      console.error("Login error:", err);
       setError(err.message || 'Erreur lors de la connexion.');
+    } finally {
       setLoading(false);
     }
   };
@@ -116,7 +122,13 @@ export default function SignInForm() {
               </div>
 
               <div>
-                <Button className="w-full" size="sm" disabled={loading}>
+                <Button 
+                  className="w-full" 
+                  size="sm" 
+                  disabled={loading} 
+                  type="submit"
+                  onClick={() => console.log("Button clicked directly")}
+                >
                   {loading ? 'Connexion...' : 'Se connecter'}
                 </Button>
               </div>
