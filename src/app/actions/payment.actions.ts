@@ -306,3 +306,166 @@ export async function payoutAgentAction(
     };
   }
 }
+
+// ── Retrait partagé (Player / Agent) ─────────────────────────────
+
+/**
+ * Initie un retrait Mobile Money.
+ * - Joueur : déduit son solde User après confirmation
+ * - Agent  : enregistre dans Agent.retraits[] (commission)
+ */
+export async function requestRetraitAction(phone: string, amount: number) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: "Non connecté." };
+
+    if (!phone || !amount || amount <= 0) {
+      return { success: false, error: "Téléphone et montant requis." };
+    }
+
+    await connectToDb();
+    const user = await User.findById(session.userId);
+    if (!user) return { success: false, error: "Utilisateur introuvable." };
+
+    // Vérifier le solde
+    if (user.solde < amount) {
+      return { success: false, error: "Solde insuffisant." };
+    }
+
+    const reference = `WTH-${user.role}-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+
+    const payout = await initiatePayout({ phone, amount, reference });
+    if (!payout.success || !payout.orderNumber) {
+      return { success: false, error: payout.error || "Échec de l'initiation du retrait." };
+    }
+
+    // Enregistrer selon le rôle
+    if (user.role === 'PLAYER') {
+      const player = await Player.findOne({ userId: session.userId });
+      if (!player) return { success: false, error: "Profil joueur introuvable." };
+      player.retraits.push({
+        amount,
+        providerTxId: payout.orderNumber,
+        status: "EN_ATTENTE",
+        createdAt: new Date(),
+      });
+      await player.save();
+    } else {
+      const agent = await Agent.findOne({ userId: session.userId });
+      if (!agent) return { success: false, error: "Profil agent introuvable." };
+      agent.retraits.push({
+        amount,
+        providerTxId: payout.orderNumber,
+        status: "EN_ATTENTE",
+        createdAt: new Date(),
+      });
+      await agent.save();
+    }
+
+    return { success: true, orderNumber: payout.orderNumber, message: "Retrait initié. En attente de confirmation." };
+  } catch (error: any) {
+    console.error("[requestRetraitAction]", error);
+    return { success: false, error: error.message || "Erreur serveur." };
+  }
+}
+
+/**
+ * Vérifie le statut d'un retrait.
+ * Si SUCCES → réduit le solde User.
+ */
+export async function checkRetraitStatusAction(retraitIndex: number) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: "Non connecté." };
+
+    await connectToDb();
+
+    let retraitDoc: { amount: number; providerTxId: string; status: string; createdAt: Date } | null = null;
+
+    if (session.role === 'PLAYER') {
+      const player = await Player.findOne({ userId: session.userId });
+      if (!player) return { success: false, error: "Joueur introuvable." };
+      const retraits = player.retraits || [];
+      const r = retraits[retraitIndex];
+      if (!r) return { success: false, error: "Retrait introuvable." };
+      if (r.status !== "EN_ATTENTE") return { success: true, status: r.status, message: "Déjà traité." };
+
+      const statusCheck = await checkStatus(r.providerTxId);
+      if (!statusCheck.success) return { success: false, error: statusCheck.error || "Impossible de vérifier." };
+
+      const newStatus = statusCheck.status || "ECHEC";
+      player.retraits[retraitIndex].status = newStatus;
+
+      if (newStatus === "SUCCES") {
+        const user = await User.findById(session.userId);
+        if (user) { user.solde = Math.max(0, user.solde - r.amount); await user.save(); }
+      }
+      await player.save();
+      retraitDoc = player.retraits[retraitIndex];
+    } else {
+      const agent = await Agent.findOne({ userId: session.userId });
+      if (!agent) return { success: false, error: "Agent introuvable." };
+      const retraits = agent.retraits || [];
+      const r = retraits[retraitIndex];
+      if (!r) return { success: false, error: "Retrait introuvable." };
+      if (r.status !== "EN_ATTENTE") return { success: true, status: r.status, message: "Déjà traité." };
+
+      const statusCheck = await checkStatus(r.providerTxId);
+      if (!statusCheck.success) return { success: false, error: statusCheck.error || "Impossible de vérifier." };
+
+      const newStatus = statusCheck.status || "ECHEC";
+      agent.retraits[retraitIndex].status = newStatus;
+
+      if (newStatus === "SUCCES") {
+        const user = await User.findById(session.userId);
+        if (user) { user.solde = Math.max(0, user.solde - r.amount); await user.save(); }
+      }
+      await agent.save();
+      retraitDoc = agent.retraits[retraitIndex];
+    }
+
+    return {
+      success: true,
+      status: retraitDoc?.status,
+      message: retraitDoc?.status === "SUCCES"
+        ? `Retrait confirmé ! ${(retraitDoc?.amount || 0).toLocaleString("fr-FR")} FC déduits.`
+        : retraitDoc?.status === "ECHEC" ? "Le retrait a échoué." : "En attente.",
+    };
+  } catch (error: any) {
+    console.error("[checkRetraitStatusAction]", error);
+    return { success: false, error: error.message || "Erreur." };
+  }
+}
+
+/**
+ * Récupère les infos + historique des retraits (Player ou Agent).
+ */
+export async function getMyRetraitsAction() {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: "Non connecté." };
+
+    await connectToDb();
+    const user = await User.findById(session.userId);
+    if (!user) return { success: false, error: "Utilisateur introuvable." };
+
+    let retraits: any[] = [];
+
+    if (session.role === 'PLAYER') {
+      const player = await Player.findOne({ userId: session.userId });
+      if (player) {
+        retraits = (player.retraits || []).map((r, i) => ({ index: i, amount: r.amount, providerTxId: r.providerTxId, status: r.status, createdAt: r.createdAt }));
+      }
+    } else {
+      const agent = await Agent.findOne({ userId: session.userId });
+      if (agent) {
+        retraits = (agent.retraits || []).map((r, i) => ({ index: i, amount: r.amount, providerTxId: r.providerTxId, status: r.status, createdAt: r.createdAt }));
+      }
+    }
+
+    return { success: true, data: { solde: user.solde, pseudo: user.pseudo, telephone: user.telephone, role: user.role, retraits } };
+  } catch (error: any) {
+    console.error("[getMyRetraitsAction]", error);
+    return { success: false, error: error.message || "Erreur." };
+  }
+}

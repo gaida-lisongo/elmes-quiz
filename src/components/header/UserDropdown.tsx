@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Settings, HelpCircle, LogOut, Wallet } from 'lucide-react';
+import { User, Settings, HelpCircle, LogOut, Wallet, ArrowUpRight } from 'lucide-react';
 import { Dropdown } from '@/components/ui/dropdown/Dropdown';
 import { DropdownItem } from '@/components/ui/dropdown/DropdownItem';
 import { logoutUser } from '@/app/actions/auth.actions';
@@ -132,36 +132,27 @@ export default function UserDropdown({ user }: UserDropdownProps) {
         {/* Menu items */}
         <ul className="flex flex-col gap-1 py-3">
           <li>
-            <DropdownItem
-              onItemClick={closeDropdown}
-              tag="a"
-              href="/profile"
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-            >
+            <DropdownItem onItemClick={closeDropdown} tag="a" href="/profile" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
               <User className="h-5 w-5 text-gray-400" />
               Mon Profil
             </DropdownItem>
           </li>
           {user?.role === 'PLAYER' && (
             <li>
-              <DropdownItem
-                onItemClick={closeDropdown}
-                tag="a"
-                href="/recharges"
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-              >
+              <DropdownItem onItemClick={closeDropdown} tag="a" href="/recharges" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
                 <Wallet className="h-5 w-5 text-gray-400" />
-                Mes Recharges
+                Recharges
               </DropdownItem>
             </li>
           )}
           <li>
-            <DropdownItem
-              onItemClick={closeDropdown}
-              tag="a"
-              href={user ? getSettingsLink(user.role) : '/recharges'}
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-            >
+            <DropdownItem onItemClick={closeDropdown} tag="a" href="/retraits" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
+              <ArrowUpRight className="h-5 w-5 text-gray-400" />
+              Retraits
+            </DropdownItem>
+          </li>
+          <li>
+            <DropdownItem onItemClick={closeDropdown} tag="a" href={user ? getSettingsLink(user.role) : '/recharges'} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
               <Settings className="h-5 w-5 text-gray-400" />
               {user?.role === 'ADMIN' ? "Panneau d'administration" : 'Paramètres'}
             </DropdownItem>

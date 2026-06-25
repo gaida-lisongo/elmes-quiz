@@ -122,18 +122,22 @@ export async function initiatePayout(
       reference: payload.reference,
     });
 
-    if (data.code === '0' && data.data?.orderNumber) {
+    console.log('PayOut', data)
+
+    if (data.code === '0' && data?.orderNumber) {
       return {
         success: true,
-        orderNumber: data.data.orderNumber,
+        orderNumber: data.orderNumber,
         message: data.message || 'Paiement initié avec succès.',
         raw: data,
       };
     }
 
+    const message = data?.status == '0XX6' ? "Veuillez patienter le temps que nous disposons des fonds" : data.message || data.error || 'Échec de l’initiation du paiement.'
+
     return {
       success: false,
-      error: data.message || data.error || 'Échec de l’initiation du paiement.',
+      error: message,
       raw: data,
     };
   } catch (error: any) {

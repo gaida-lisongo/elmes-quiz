@@ -8,6 +8,13 @@ export interface IRecharge {
   createdAt: Date;
 }
 
+export interface IRetrait {
+  amount: number;
+  providerTxId: string;
+  status: 'EN_ATTENTE' | 'SUCCES' | 'ECHEC';
+  createdAt: Date;
+}
+
 export interface IMetrics {
   totalScore: number;
   partiesJouees: number;
@@ -16,10 +23,11 @@ export interface IMetrics {
 
 export interface IPlayer extends Document {
   userId: mongoose.Types.ObjectId;
-  level: 0 | 1 | 2 | 3; // 0=Gratuit, 1=3000FC, 2=5000FC, 3=Suprême
+  level: 0 | 1 | 2 | 3;
   school: string;
   parties: number;
   recharges: IRecharge[];
+  retraits: IRetrait[];
   metrics: IMetrics;
   createdAt: Date;
   updatedAt: Date;
@@ -37,6 +45,14 @@ const PlayerSchema: Schema<IPlayer> = new Schema(
         providerTxId: { type: String, required: true },
         status: { type: String, enum: ['EN_ATTENTE', 'SUCCES', 'ECHEC'], default: 'EN_ATTENTE' },
         targetLevel: { type: Number, required: true },
+        createdAt: { type: Date, default: Date.now }
+      }
+    ],
+    retraits: [
+      {
+        amount: { type: Number, required: true },
+        providerTxId: { type: String, required: true },
+        status: { type: String, enum: ['EN_ATTENTE', 'SUCCES', 'ECHEC'], default: 'EN_ATTENTE' },
         createdAt: { type: Date, default: Date.now }
       }
     ],
