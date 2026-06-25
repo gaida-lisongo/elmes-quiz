@@ -45,7 +45,7 @@ const AccountBadge: React.FC<AccountBadgeProps> = ({ pseudo, role, solde }) => {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Solde:{" "}
               <span className="font-semibold text-gray-800 dark:text-white/90">
-                {solde.toLocaleString()} FCFA
+                {solde.toLocaleString()} FC
               </span>
             </p>
           )}

@@ -2,21 +2,24 @@ import type { Metadata } from "next";
 import React from "react";
 import GenericDashboard from "@/components/Dashboard/GenericDashboard";
 import AccountBadge from "@/components/Dashboard/AccountBadge";
-import CarouselCards from "@/components/Dashboard/CarouselCards";
-import type { CarouselCardItem } from "@/components/Dashboard/CarouselCards";
 import LeaderboardTable from "@/components/Dashboard/LeaderboardTable";
+import JetonCarousel from "@/components/Dashboard/JetonCarousel";
+import CategorieCarouselPlayer from "@/components/Dashboard/CategorieCarouselPlayer";
+import CategorieCarouselMod from "@/components/Dashboard/CategorieCarouselMod";
 import MonthlySalesChart from "@/components/ecommerce/MonthlySalesChart";
 import MonthlyTarget from "@/components/ecommerce/MonthlyTarget";
 import {
   ShootingStarIcon,
   DollarLineIcon,
+  GroupIcon,
+  BoxIconLine,
 } from "@/icons";
 import { getCurrentUserDetailed } from "@/app/actions/auth.actions";
 import { getLeaderboard } from "@/app/actions/leaderboard.actions";
+import { getAllCategories, getAllCategoriesAdmin } from "@/app/actions/categorie.actions";
 
 export const metadata: Metadata = {
-  title:
-    "Dashboard | Quiz Genie",
+  title: "Dashboard | Quiz Genie",
   description: "Dashboard Quiz Genie",
 };
 
@@ -33,63 +36,81 @@ export default async function Ecommerce() {
     />
   ) : undefined;
 
-  /* ── Métriques dynamiques ── */
-  const metrics = [
-    {
-      title: "Revenue",
-      total: "$12,402",
-      rate: "15.3%",
-      levelUp: true,
-      icon: (
-        <DollarLineIcon className="text-gray-800 size-6 dark:text-white/90" />
-      ),
-    },
-    {
-      title: "Active Users",
-      total: "1,294",
-      rate: "3.24%",
-      levelUp: true,
-      icon: (
-        <ShootingStarIcon className="text-gray-800 size-6 dark:text-white/90" />
-      ),
-    },
-  ];
+  /* ── Métriques dynamiques selon le rôle ── */
+  const metrics =
+    user?.role === "ADMIN"
+      ? [
+          {
+            title: "Revenu Total",
+            total: "$18,240",
+            rate: "12.5%",
+            levelUp: true,
+            icon: (
+              <DollarLineIcon className="text-gray-800 size-6 dark:text-white/90" />
+            ),
+          },
+          {
+            title: "Joueurs Actifs",
+            total: "1,482",
+            rate: "8.7%",
+            levelUp: true,
+            icon: (
+              <GroupIcon className="text-gray-800 size-6 dark:text-white/90" />
+            ),
+          },
+        ]
+      : user?.role === "MOD"
+      ? [
+          {
+            title: "Parties Créées",
+            total: "342",
+            rate: "5.2%",
+            levelUp: true,
+            icon: (
+              <BoxIconLine className="text-gray-800 size-6 dark:text-white/90" />
+            ),
+          },
+          {
+            title: "Catégories",
+            total: "8",
+            rate: "2",
+            levelUp: true,
+            icon: (
+              <ShootingStarIcon className="text-gray-800 size-6 dark:text-white/90" />
+            ),
+          },
+        ]
+      : [
+          {
+            title: "Mon Score",
+            total: user?.profile?.metrics?.totalScore ?? 0,
+            rate: "",
+            icon: (
+              <ShootingStarIcon className="text-gray-800 size-6 dark:text-white/90" />
+            ),
+          },
+          {
+            title: "Parties Jouées",
+            total: user?.profile?.metrics?.partiesJouees ?? 0,
+            rate: "",
+            icon: (
+              <BoxIconLine className="text-gray-800 size-6 dark:text-white/90" />
+            ),
+          },
+        ];
 
-  /* ── Cartes du carrousel dynamique ── */
-  const carouselCards: CarouselCardItem[] = [
-    {
-      id: 1,
-      image: "/images/carousel/carousel-01.png",
-      title: "Summer Flash Sale",
-      description: "Get up to 50% off on selected items. Limited time offer!",
-      badge: "New",
-      badgeColor: "success",
-    },
-    {
-      id: 2,
-      image: "/images/carousel/carousel-02.png",
-      title: "New Collection Drop",
-      description: "Explore the latest arrivals in our premium lineup.",
-      badge: "Trending",
-      badgeColor: "warning",
-    },
-    {
-      id: 3,
-      image: "/images/carousel/carousel-03.png",
-      title: "Free Shipping Week",
-      description: "Enjoy free delivery on all orders above $50.",
-      badge: "Promo",
-      badgeColor: "info",
-    },
-    {
-      id: 4,
-      image: "/images/carousel/carousel-04.png",
-      title: "Loyalty Rewards",
-      description: "Earn double points on every purchase this month.",
-      badge: "Exclusive",
-      badgeColor: "primary",
-    },
-  ];
+  /* ── Carrousel selon le rôle ── */
+  let carouselComponent: React.ReactNode = null;
+
+  if (user?.role === "ADMIN") {
+    carouselComponent = <JetonCarousel />;
+  } else if (user?.role === "MOD") {
+    const categories = await getAllCategoriesAdmin();
+    carouselComponent = <CategorieCarouselMod categories={categories} />;
+  } else if (user?.role === "PLAYER") {
+    const categories = await getAllCategories();
+    carouselComponent = <CategorieCarouselPlayer categories={categories} />;
+  }
 
   return (
     <GenericDashboard
@@ -97,9 +118,7 @@ export default async function Ecommerce() {
       metrics={metrics}
       chartSection={<MonthlySalesChart />}
       rightSidebar={<MonthlyTarget />}
-      carouselComponent={
-        <CarouselCards title="Latest Highlights" cards={carouselCards} />
-      }
+      carouselComponent={carouselComponent}
       recentOrdersTable={<LeaderboardTable initialData={top10} />}
     />
   );
