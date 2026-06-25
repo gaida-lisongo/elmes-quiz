@@ -13,6 +13,7 @@ export interface IPartie extends Document {
   reponses: IReponsePartie[];
   note: number;
   status: 'EN_COURS' | 'TERMINE';
+  questionExpiresAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,17 +27,17 @@ const PartieSchema: Schema<IPartie> = new Schema(
       {
         quizId: { type: Schema.Types.ObjectId, ref: 'Quiz', required: true },
         reponseDonnee: { type: String },
-        estCorrecte: { type: Boolean, required: true } // Note: Remplacé par Boolean lors de l'exécution réelle
+        estCorrecte: { type: Boolean, required: true }
       }
     ],
     note: { type: Number, required: true },
-    status: { type: String, enum: ['EN_COURS', 'TERMINE'], default: 'EN_COURS' }
+    status: { type: String, enum: ['EN_COURS', 'TERMINE'], default: 'EN_COURS' },
+    questionExpiresAt: { type: Date, default: () => new Date(Date.now() + 15_000) }
   },
   { timestamps: true }
 );
 
-// Correction rapide d'une petite coquille de frappe sur le type Mongoose de estCorrecte si tu fais un copier/coller :
-// estCorrecte: { type: Boolean, required: true }
-
-const Partie: Model<IPartie> = mongoose.models.Partie || mongoose.model<IPartie>('Partie', PartieSchema);
+// Force le re-enregistrement pour prendre en compte les nouveaux champs (hot-reload Next.js)
+delete mongoose.models.Partie;
+const Partie: Model<IPartie> = mongoose.model<IPartie>('Partie', PartieSchema);
 export default Partie;
