@@ -18,6 +18,7 @@ export interface IPlayer extends Document {
   userId: mongoose.Types.ObjectId;
   level: 0 | 1 | 2 | 3; // 0=Gratuit, 1=3000FC, 2=5000FC, 3=Suprême
   school: string;
+  parties: number;
   recharges: IRecharge[];
   metrics: IMetrics;
   createdAt: Date;
@@ -29,6 +30,7 @@ const PlayerSchema: Schema<IPlayer> = new Schema(
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
     level: { type: Number, enum: [0, 1, 2, 3], default: 0 },
     school: { type: String, required: true },
+    parties: { type: Number, default: 0},
     recharges: [
       {
         amount: { type: Number, required: true },

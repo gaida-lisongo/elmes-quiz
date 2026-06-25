@@ -32,7 +32,7 @@ function getInitials(name: string): string {
 
 function getSettingsLink(role: string): string {
   if (role === 'ADMIN') return '/autorisations';
-  return '/recharge'; // PLAYER ou MOD
+  return '/recharges'; // PLAYER ou MOD
 }
 
 export default function UserDropdown({ user }: UserDropdownProps) {
@@ -113,10 +113,19 @@ export default function UserDropdown({ user }: UserDropdownProps) {
             {user?.telephone}
           </span>
           {user && (
-            <span className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-success-600 dark:text-success-400">
-              <Wallet className="h-3.5 w-3.5" />
-              Solde : {formatSolde(user.solde)}
-            </span>
+            <>
+              {user.role === 'PLAYER' ? (
+                <span className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-brand-600 dark:text-brand-400">
+                  <Wallet className="h-3.5 w-3.5" />
+                  Parties : {user.profile?.parties ?? 0}
+                </span>
+              ) : (
+                <span className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-success-600 dark:text-success-400">
+                  <Wallet className="h-3.5 w-3.5" />
+                  Solde : {formatSolde(user.solde)}
+                </span>
+              )}
+            </>
           )}
         </div>
 
@@ -126,22 +135,35 @@ export default function UserDropdown({ user }: UserDropdownProps) {
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              href="/profil"
+              href="/profile"
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <User className="h-5 w-5 text-gray-400" />
               Mon Profil
             </DropdownItem>
           </li>
+          {user?.role === 'PLAYER' && (
+            <li>
+              <DropdownItem
+                onItemClick={closeDropdown}
+                tag="a"
+                href="/recharges"
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+              >
+                <Wallet className="h-5 w-5 text-gray-400" />
+                Mes Recharges
+              </DropdownItem>
+            </li>
+          )}
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              href={user ? getSettingsLink(user.role) : '/recharge'}
+              href={user ? getSettingsLink(user.role) : '/recharges'}
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <Settings className="h-5 w-5 text-gray-400" />
-              {user?.role === 'ADMIN' ? 'Panneau d\'administration' : 'Paramètres'}
+              {user?.role === 'ADMIN' ? "Panneau d'administration" : 'Paramètres'}
             </DropdownItem>
           </li>
           <li>

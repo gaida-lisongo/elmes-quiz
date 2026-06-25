@@ -19,6 +19,7 @@ import {
   TaskIcon,
   FolderIcon,
   GroupIcon,
+  DollarLineIcon,
 } from "../icons/index";
 import SidebarWidget from "./SidebarWidget";
 
@@ -39,6 +40,11 @@ const navItems: NavItem[] = [
     icon: <UserCircleIcon />,
     name: "Profil",
     path: "/profile",
+  },
+  {
+    icon: <DollarLineIcon />,
+    name: "Recharges",
+    path: "/recharges",
   },
   {
     icon: <CalenderIcon />,

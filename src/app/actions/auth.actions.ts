@@ -163,6 +163,7 @@ export async function getCurrentUserDetailed() {
         profile: {
           type: 'PLAYER',
           level: player.level,
+          parties: player.parties,
           school: player.school,
           metrics: player.metrics,
         },
