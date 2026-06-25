@@ -6,8 +6,7 @@ import LeaderboardTable from "@/components/Dashboard/LeaderboardTable";
 import JetonCarousel from "@/components/Dashboard/JetonCarousel";
 import CategorieCarouselPlayer from "@/components/Dashboard/CategorieCarouselPlayer";
 import CategorieCarouselMod from "@/components/Dashboard/CategorieCarouselMod";
-import MonthlySalesChart from "@/components/ecommerce/MonthlySalesChart";
-import MonthlyTarget from "@/components/ecommerce/MonthlyTarget";
+import PartiesChart from "@/components/Dashboard/PartiesChart";
 import {
   ShootingStarIcon,
   DollarLineIcon,
@@ -17,6 +16,7 @@ import {
 import { getCurrentUserDetailed } from "@/app/actions/auth.actions";
 import { getLeaderboard } from "@/app/actions/leaderboard.actions";
 import { getAllCategories, getAllCategoriesAdmin } from "@/app/actions/categorie.actions";
+import { getPartiesStats } from "@/app/actions/partieStats.actions";
 
 export const metadata: Metadata = {
   title: "Dashboard | Quiz Genie",
@@ -99,6 +99,9 @@ export default async function Ecommerce() {
           },
         ];
 
+  // ── Statistiques des parties pour le graphique ──
+  const partiesStats = await getPartiesStats();
+
   /* ── Carrousel selon le rôle ── */
   let carouselComponent: React.ReactNode = null;
 
@@ -116,8 +119,7 @@ export default async function Ecommerce() {
     <GenericDashboard
       accountBadge={accountBadge}
       metrics={metrics}
-      chartSection={<MonthlySalesChart />}
-      rightSidebar={<MonthlyTarget />}
+      chartSection={<PartiesChart data={partiesStats} />}
       carouselComponent={carouselComponent}
       recentOrdersTable={<LeaderboardTable initialData={top10} />}
     />
