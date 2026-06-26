@@ -5,6 +5,7 @@ import Quiz from '@/app/lib/models/Quiz';
 import Partie from '@/app/lib/models/Partie';
 import Player from '@/app/lib/models/Player';
 import { getSession } from '@/lib/utils/auth';
+import { revalidatePath } from 'next/cache';
 import mongoose from 'mongoose';
 
 // ── Constantes ──
@@ -244,6 +245,9 @@ export async function submitAnswer(
       const newLevel = computeLevel(player.metrics.totalScore);
       if (newLevel > oldLevel) player.level = newLevel as 0 | 1 | 2 | 3;
       await player.save();
+
+      // Webhook : revalide le cache du dashboard → SSE envoie les nouvelles données
+      revalidatePath("/", "layout");
 
       return {
         correct: true, gameOver: true, isLastQuestion: true,

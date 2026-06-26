@@ -7,6 +7,7 @@ import JetonCarousel from "@/components/Dashboard/JetonCarousel";
 import CategorieCarouselPlayer from "@/components/Dashboard/CategorieCarouselPlayer";
 import CategorieCarouselMod from "@/components/Dashboard/CategorieCarouselMod";
 import PartiesChart from "@/components/Dashboard/PartiesChart";
+import ProgressBar from "@/components/Dashboard/ProgressBar";
 import {
   ShootingStarIcon,
   DollarLineIcon,
@@ -19,6 +20,7 @@ import { getAllCategories, getAllCategoriesAdmin } from "@/app/actions/categorie
 import { getPartiesStats } from "@/app/actions/partieStats.actions";
 import { getAgentMetrics } from "@/app/actions/agentMetrics.actions";
 import { getEquipesCount } from "@/app/actions/equipe.actions";
+import { getProgressData } from "@/app/actions/progress.actions";
 
 export const metadata: Metadata = {
   title: "Dashboard | Quiz Genie",
@@ -33,6 +35,9 @@ export default async function Ecommerce() {
   const { revenue, totalPlayers } = await getAgentMetrics();
   const equipesCount = await getEquipesCount();
 
+  // ── Données de progression (barre teaser) ──
+  const progressData = await getProgressData();
+
   /* ── Badge du compte connecté ── */
   const accountBadge = user ? (
     <AccountBadge
@@ -41,6 +46,14 @@ export default async function Ecommerce() {
       solde={user.solde}
       level={user?.profile?.level}
       equipesCount={equipesCount}
+      progressComponent={
+        progressData ? (
+          <ProgressBar
+            initialData={progressData}
+            userId={user._id?.toString()}
+          />
+        ) : undefined
+      }
     />
   ) : undefined;
 

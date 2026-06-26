@@ -9,6 +9,8 @@ interface AccountBadgeProps {
   solde?: number;
   level?: number;
   equipesCount?: number;
+  /** Barre de progression teaser (optionnelle) */
+  progressComponent?: React.ReactNode;
 }
 
 const LEVEL_LABELS: Record<number, string> = {
@@ -80,6 +82,7 @@ const AccountBadge: React.FC<AccountBadgeProps> = ({
   solde,
   level,
   equipesCount,
+  progressComponent,
 }) => {
   const showLevel = role === "PLAYER" && level !== undefined;
   const badgeLabel = showLevel
@@ -153,6 +156,11 @@ const AccountBadge: React.FC<AccountBadgeProps> = ({
           </div>
         )}
       </div>
+
+      {/* Barre de progression teaser */}
+      {progressComponent && (
+        <div className="mt-0">{progressComponent}</div>
+      )}
     </div>
   );
 };
