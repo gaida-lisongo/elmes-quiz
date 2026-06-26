@@ -7,6 +7,11 @@ export const metadata: Metadata = {
   // other metadata
 };
 
-export default function SignUp() {
-  return <SignUpForm />;
+export default async function SignUp({
+  searchParams,
+}: {
+  searchParams: Promise<{ ref?: string }>;
+}) {
+  const { ref } = await searchParams;
+  return <SignUpForm refSlug={ref} />;
 }

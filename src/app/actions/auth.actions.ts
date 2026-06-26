@@ -2,6 +2,7 @@
 
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
+import mongoose from 'mongoose';
 import connectToDb from '../lib/utils/db';
 import User from '../lib/models/User';
 import Player from '../lib/models/Player';
@@ -33,6 +34,7 @@ export async function registerPlayer(formData: FormData) {
   const telephone = formData.get('telephone') as string;
   const school = formData.get('school') as string;
   const password = formData.get('password') as string;
+  const ref = formData.get('ref') as string | null;
 
   if (!pseudo || !telephone || !school || !password) {
     return { success: false, error: 'Tous les champs sont obligatoires.' };
@@ -56,9 +58,22 @@ export async function registerPlayer(formData: FormData) {
       secure: hashedPassword,
     });
 
+    // Résoudre le parrain (ref = pseudo du joueur parrain)
+    let referedBy: mongoose.Types.ObjectId | undefined = undefined;
+    if (ref) {
+      const parrainUser = await User.findOne({ pseudo: ref.trim() });
+      if (parrainUser) {
+        const parrainPlayer = await Player.findOne({ userId: parrainUser._id });
+        if (parrainPlayer) {
+          referedBy = parrainPlayer._id;
+        }
+      }
+    }
+
     // Création du profil Player associé
     await Player.create({
       userId: newUser._id,
+      referedBy,
       level: 0,
       school: school.trim(),
       recharges: [],

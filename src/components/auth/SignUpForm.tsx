@@ -11,7 +11,7 @@ import { registerPlayer } from '@/app/actions/auth.actions';
 const inputClass =
   'h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800';
 
-export default function SignUpForm() {
+export default function SignUpForm({ refSlug }: { refSlug?: string }) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [pseudo, setPseudo] = useState('');
@@ -32,6 +32,9 @@ export default function SignUpForm() {
       formData.append('telephone', telephone);
       formData.append('school', school);
       formData.append('password', password);
+      if (refSlug) {
+        formData.append('ref', refSlug);
+      }
 
       const result = await registerPlayer(formData);
 

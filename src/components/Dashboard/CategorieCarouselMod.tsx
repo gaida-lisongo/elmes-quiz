@@ -113,7 +113,7 @@ function CategorieFormModal({
             <Button variant="outline" onClick={onClose} disabled={loading}>
               Annuler
             </Button>
-            <Button disabled={loading}>
+            <Button disabled={loading} type="submit">
               {loading ? "Enregistrement..." : editData ? "Modifier" : "Créer"}
             </Button>
           </div>

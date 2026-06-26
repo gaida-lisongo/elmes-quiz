@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   description: "This is Next.js Signin Page TailAdmin Dashboard Template",
 };
 
-export default function SignIn() {
-  return <SignInForm />;
+export default async function SignIn({
+  searchParams,
+}: {
+  searchParams: Promise<{ ref?: string }>;
+}) {
+  const { ref } = await searchParams;
+  return <SignInForm refSlug={ref} />;
 }

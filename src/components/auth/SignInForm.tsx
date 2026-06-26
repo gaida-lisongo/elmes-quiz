@@ -11,13 +11,15 @@ import { loginUser } from '@/app/actions/auth.actions';
 const inputClass =
   'h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800';
 
-export default function SignInForm() {
+export default function SignInForm({ refSlug }: { refSlug?: string }) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [telephone, setTelephone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const signupHref = refSlug ? `/signup?ref=${encodeURIComponent(refSlug)}` : '/signup';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,7 +141,7 @@ export default function SignInForm() {
             <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
               Pas encore de compte ?{' '}
               <Link
-                href="/signup"
+                href={signupHref}
                 className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
               >
                 Créer un compte joueur

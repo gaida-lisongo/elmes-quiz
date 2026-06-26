@@ -157,6 +157,15 @@ export async function checkRechargeStatusAction(
         partiesGagnees += 10;
       }
       player.parties += partiesGagnees;
+
+      // Bonus parrainage : +3 parties pour le parrain si referedBy est défini
+      if (player.referedBy) {
+        const parrain = await Player.findById(player.referedBy);
+        if (parrain) {
+          parrain.parties += 3;
+          await parrain.save();
+        }
+      }
     }
 
     await player.save();
