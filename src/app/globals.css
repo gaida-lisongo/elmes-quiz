@@ -790,6 +790,11 @@ span.flatpickr-weekday,
   50% { box-shadow: 0 0 0 12px rgba(70, 95, 255, 0); }
 }
 
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @layer utilities {
   .animate-fadeIn {
     animation: fadeIn 0.4s ease-out both;
@@ -808,5 +813,8 @@ span.flatpickr-weekday,
   }
   .animate-pulse-glow {
     animation: pulseGlow 2s ease-in-out infinite;
+  }
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out both;
   }
 }
