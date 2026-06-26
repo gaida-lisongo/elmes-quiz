@@ -70,12 +70,13 @@ export async function registerPlayer(formData: FormData) {
       }
     }
 
-    // Création du profil Player associé
+    // Création du profil Player associé (10 parties de bienvenue offertes)
     await Player.create({
       userId: newUser._id,
       referedBy,
       level: 0,
       school: school.trim(),
+      parties: 10,
       recharges: [],
       metrics: { totalScore: 0, partiesJouees: 0, MeilleurScore: 0 }
     });
