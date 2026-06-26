@@ -23,6 +23,7 @@ export interface IMetrics {
 
 export interface IPlayer extends Document {
   userId: mongoose.Types.ObjectId;
+  referedBy: mongoose.Types.ObjectId;
   level: 0 | 1 | 2 | 3;
   school: string;
   parties: number;
@@ -36,6 +37,7 @@ export interface IPlayer extends Document {
 const PlayerSchema: Schema<IPlayer> = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+    referedBy: { type: Schema.Types.ObjectId, ref: 'Player'},
     level: { type: Number, enum: [0, 1, 2, 3], default: 0 },
     school: { type: String, required: true },
     parties: { type: Number, default: 0},

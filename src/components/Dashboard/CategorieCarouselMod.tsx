@@ -213,26 +213,29 @@ const CategorieCarouselMod: React.FC<CategorieCarouselModProps> = ({
             {categories.length > visibleCount && (
               <>
                 <button
+                  type="button"
                   onClick={() => setStartIndex((p) => Math.max(0, p - 1))}
                   disabled={startIndex === 0}
                   className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
                 >
-                  <ChevronLeftIcon className="w-4 h-4" />
+                  <ChevronLeftIcon className="w-4 h-4 pointer-events-none" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => setStartIndex((p) => Math.min(maxStartIndex, p + 1))}
                   disabled={startIndex >= maxStartIndex}
                   className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
                 >
-                  <ChevronRightIcon className="w-4 h-4" />
+                  <ChevronRightIcon className="w-4 h-4 pointer-events-none" />
                 </button>
               </>
             )}
             <button
+              type="button"
               onClick={openCreate}
               className="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-600 transition-colors"
             >
-              <PlusIcon className="w-4 h-4" />
+              <PlusIcon className="w-4 h-4 pointer-events-none" />
               Ajouter
             </button>
           </div>
@@ -243,6 +246,7 @@ const CategorieCarouselMod: React.FC<CategorieCarouselModProps> = ({
           <div className="flex flex-col items-center justify-center py-10 text-gray-400 dark:text-gray-500">
             <p className="text-sm">Aucune catégorie pour le moment</p>
             <button
+              type="button"
               onClick={openCreate}
               className="mt-2 text-sm font-medium text-brand-500 hover:text-brand-600"
             >
@@ -294,20 +298,23 @@ const CategorieCarouselMod: React.FC<CategorieCarouselModProps> = ({
                     </Link>
                     <div className="ml-auto flex items-center gap-1">
                       <button
+                        type="button"
                         onClick={() => openEdit(cat)}
                         className="p-1 rounded-md bg-white/20 hover:bg-white/30 transition-colors"
                         title="Modifier"
                       >
-                        <PencilIcon className="w-3.5 h-3.5 text-white" />
+                        <PencilIcon className="w-3.5 h-3.5 text-white pointer-events-none" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => setDeleteId(cat._id)}
                         className="p-1 rounded-md bg-white/20 hover:bg-red-400/30 transition-colors"
                         title="Supprimer"
                       >
-                        <TrashBinIcon className="w-3.5 h-3.5 text-white" />
+                        <TrashBinIcon className="w-3.5 h-3.5 text-white pointer-events-none" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => toggleStatus(cat)}
                         className={`p-1 rounded-md transition-colors ${
                           cat.status
