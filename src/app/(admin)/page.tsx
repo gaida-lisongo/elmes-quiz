@@ -23,8 +23,9 @@ import { getEquipesCount } from "@/app/actions/equipe.actions";
 import { getProgressData } from "@/app/actions/progress.actions";
 
 export const metadata: Metadata = {
-  title: "Dashboard | Quiz Genie",
-  description: "Dashboard Quiz Genie",
+  title: "Dashboard",
+  description:
+    "ELMES-QUIZ — Tableau de bord. Gérez vos quiz, suivez vos performances et participez aux compétitions pour gagner de l'argent.",
 };
 
 export default async function Ecommerce() {

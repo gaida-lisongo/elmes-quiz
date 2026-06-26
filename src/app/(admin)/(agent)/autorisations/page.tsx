@@ -4,9 +4,9 @@ import { Metadata } from "next";
 import AutorisationsPage from "./AutorisationsClient";
 
 export const metadata: Metadata = {
-  title: "Autorisations | ELMESQUIZ",
+  title: "Autorisations",
   description:
-    "This is Next.js Profile page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
+    "ELMES-QUIZ — Gérez les autorisations des agents et modérateurs de la plateforme de quiz éducatifs.",
 };
 
 export default async function Autorisations(){

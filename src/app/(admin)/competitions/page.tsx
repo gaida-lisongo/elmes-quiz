@@ -3,8 +3,9 @@ import Link from "next/link";
 import { ShootingStarIcon } from "@/icons";
 
 export const metadata: Metadata = {
-  title: "Compétitions | Genie Quiz",
-  description: "Gérez les compétitions sur la plateforme Quiz Genie.",
+  title: "Compétitions",
+  description:
+    "ELMES-QUIZ — Découvrez les compétitions à venir. Chaque weekend, affrontez d'autres joueurs et gagnez de l'argent grâce à vos connaissances.",
 };
 
 export default function CompetitionsPage() {

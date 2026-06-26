@@ -3,8 +3,9 @@ import { Metadata } from "next";
 import ProfileClient from "./ProfileClient";
 
 export const metadata: Metadata = {
-  title: "Profil | Genie Quiz",
-  description: "Page de profil utilisateur - Gérez vos informations personnelles, mot de passe et photo.",
+  title: "Profil",
+  description:
+    "ELMES-QUIZ — Gérez votre profil utilisateur : pseudo, mot de passe, photo et suivez l'évolution de vos performances.",
 };
 
 export default function Profile() {

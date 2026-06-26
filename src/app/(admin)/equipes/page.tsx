@@ -2,8 +2,9 @@ import { Metadata } from "next";
 import { ShootingStarIcon } from "@/icons";
 
 export const metadata: Metadata = {
-  title: "Équipes | Genie Quiz",
-  description: "Gérez vos équipes et participez aux compétitions.",
+  title: "Équipes",
+  description:
+    "ELMES-QUIZ — Constituez votre équipe, invitez vos amis et participez aux compétitions par équipe pour maximiser vos gains.",
 };
 
 export default function EquipesPage() {

@@ -4,10 +4,9 @@ import { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Next.js Calender | TailAdmin - Next.js Dashboard Template",
+  title: "Calendrier",
   description:
-    "This is Next.js Calender page for TailAdmin  Tailwind CSS Admin Dashboard Template",
-  // other metadata
+    "ELMES-QUIZ — Consultez le calendrier des compétitions et événements à venir. Ne manquez aucun tournoi du weekend.",
 };
 export default function page() {
   return (

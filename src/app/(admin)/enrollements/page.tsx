@@ -2,8 +2,9 @@ import { Metadata } from "next";
 import { ShootingStarIcon } from "@/icons";
 
 export const metadata: Metadata = {
-  title: "Enrollements | Genie Quiz",
-  description: "Suivez les inscriptions aux compétitions sur la plateforme.",
+  title: "Inscriptions",
+  description:
+    "ELMES-QUIZ — Suivez les inscriptions aux compétitions. Gérez les participants et validez les inscriptions pour les tournois du weekend.",
 };
 
 export default function EnrollementsPage() {

@@ -11,8 +11,8 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   return {
-    title: `Questions - ${slug} | Genie Quiz`,
-    description: `Gérez les questions de la catégorie ${slug}.`,
+    title: `Questions - ${slug}`,
+    description: `ELMES-QUIZ — Gérez les questions de la catégorie ${slug}. Ajoutez, modifiez et organisez vos quiz éducatifs.`,
   };
 }
 

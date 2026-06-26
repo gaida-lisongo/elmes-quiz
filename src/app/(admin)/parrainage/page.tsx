@@ -2,8 +2,9 @@ import { Metadata } from "next";
 import { ShootingStarIcon } from "@/icons";
 
 export const metadata: Metadata = {
-  title: "Parrainage | Genie Quiz",
-  description: "Parrainez vos amis et gagnez des bonus.",
+  title: "Parrainage",
+  description:
+    "ELMES-QUIZ — Parrainez vos amis et gagnez des parties bonus à chaque recharge de vos filleuls. Plus vous parrainez, plus vous gagnez !",
 };
 
 export default function ParrainagePage() {

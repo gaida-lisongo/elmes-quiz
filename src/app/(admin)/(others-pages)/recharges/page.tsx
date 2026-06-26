@@ -2,8 +2,9 @@ import { Metadata } from "next";
 import RechargesClient from "./RechargesClient";
 
 export const metadata: Metadata = {
-  title: "Recharges | Genie Quiz",
-  description: "Page de rechargement Mobile Money - Créditez votre solde et débloquez des niveux.",
+  title: "Recharges",
+  description:
+    "ELMES-QUIZ — Rechargez votre compte par Mobile Money et débloquez des niveaux pour accéder à plus de quiz et de compétitions.",
 };
 
 export default function RechargesPage() {

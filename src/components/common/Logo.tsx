@@ -31,7 +31,7 @@ const Logo: React.FC<LogoProps> = ({
       alt="Quiz Genie"
       width={iconSize.width}
       height={iconSize.height}
-      className={`object-contain ${className}`}
+      className={`object-contain rounded-full ${className}`}
       priority
     />
   );

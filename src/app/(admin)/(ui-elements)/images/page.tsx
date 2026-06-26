@@ -7,10 +7,9 @@ import { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Next.js Images | TailAdmin - Next.js Dashboard Template",
+  title: "Images",
   description:
-    "This is Next.js Images page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
-  // other metadata
+    "ELMES-QUIZ — Plateforme de quiz éducatifs. Apprends, joue et gagne de l'argent avec tes connaissances.",
 };
 
 export default function Images() {

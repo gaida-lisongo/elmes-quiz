@@ -22,8 +22,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const name = PACK_NAMES[slug] ?? slug.toUpperCase();
   return {
-    title: `Ventes ${name} | Genie Quiz`,
-    description: `Suivez les ventes du pack ${name} sur Quiz Genie.`,
+    title: `Ventes ${name}`,
+    description: `ELMES-QUIZ — Suivez les ventes du pack ${name}. Analysez les recharges et les performances commerciales de la plateforme.`,
   };
 }
 

@@ -2,8 +2,9 @@ import { Metadata } from "next";
 import RetraitsClient from "./RetraitsClient";
 
 export const metadata: Metadata = {
-  title: "Retraits | Genie Quiz",
-  description: "Retirez votre solde Mobile Money - Gérez vos retraits.",
+  title: "Retraits",
+  description:
+    "ELMES-QUIZ — Retirez vos gains par Mobile Money. Transférez l'argent gagné lors des compétitions directement sur votre téléphone.",
 };
 
 export default function RetraitsPage() {
