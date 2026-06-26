@@ -11,6 +11,9 @@ import {
   Zap,
   Sparkles,
   Star,
+  Trash2,
+  User,
+  Phone,
 } from "lucide-react";
 
 export interface RechargeData {
@@ -20,12 +23,19 @@ export interface RechargeData {
   status: "EN_ATTENTE" | "SUCCES" | "ECHEC";
   targetLevel: number;
   createdAt: Date;
+  playerId?: string;
 }
 
 interface RechargeCardProps {
   recharge: RechargeData;
   onCheckStatus: (index: number) => void;
   checking: boolean;
+  /** Mode admin : affiche les infos joueur + bouton supprimer */
+  isAdmin?: boolean;
+  playerPseudo?: string;
+  playerPhone?: string;
+  onDelete?: (playerId: string, rechargeIndex: number) => void;
+  deleting?: boolean;
 }
 
 const statusConfig = {
@@ -80,6 +90,11 @@ export default function RechargeCard({
   recharge,
   onCheckStatus,
   checking,
+  isAdmin = false,
+  playerPseudo,
+  playerPhone,
+  onDelete,
+  deleting = false,
 }: RechargeCardProps) {
   const cfg = statusConfig[recharge.status];
   const StatusIcon = cfg.icon;
@@ -123,7 +138,7 @@ export default function RechargeCard({
             {levelInfo.name}
           </span>
           <span className="text-gray-300 dark:text-gray-600">|</span>
-          <span>{levelInfo.games} parties{recharge.targetLevel === 3 ? " (50+10)" : ""}</span>
+          <span>{levelInfo.games} parties{recharge.targetLevel === 3 ? " (50+10)" :(recharge.targetLevel === 2 ? " (20+5)" : (recharge.targetLevel === 1 ? " (10+5)" :""))}</span>
         </div>
 
         {/* Transaction ID */}
@@ -139,7 +154,37 @@ export default function RechargeCard({
           <Clock className="w-3.5 h-3.5" />
           <span>{formatDate(recharge.createdAt)}</span>
         </div>
+
+        {/* Infos joueur (admin uniquement) */}
+        {isAdmin && (
+          <>
+            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <User className="w-3.5 h-3.5" />
+              <span className="font-medium truncate max-w-[140px]">
+                {playerPseudo || "Inconnu"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <Phone className="w-3.5 h-3.5" />
+              <span className="font-mono truncate max-w-[140px]">
+                {playerPhone || "N/A"}
+              </span>
+            </div>
+          </>
+        )}
       </div>
+
+      {/* Actions admin : bouton supprimer */}
+      {isAdmin && onDelete && (
+        <button
+          onClick={() => onDelete(recharge.playerId!, recharge.index)}
+          disabled={deleting}
+          className="w-full flex items-center justify-center gap-2 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mb-2"
+        >
+          <Trash2 className={`w-4 h-4 ${deleting ? "animate-pulse" : ""}`} />
+          {deleting ? "Suppression..." : "Supprimer"}
+        </button>
+      )}
 
       {/* Bouton Vérifier (uniquement pour EN_ATTENTE) */}
       {recharge.status === "EN_ATTENTE" && (

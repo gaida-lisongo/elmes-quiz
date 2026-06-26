@@ -19,8 +19,8 @@ const JETONS: JetonCardData[] = [
     name: "ELEMBO",
     image: "/images/jetons/elembo.png",
     description:
-      "Pack découverte — 15 parties pour débuter l'aventure Quiz Genie.",
-    price: "1 000 FC",
+      "Pack découverte — 10 parties (dont 5 offertes) pour débuter l'aventure Quiz Genie.",
+    price: "3000 FC",
     games: "15 parties",
   },
   {
@@ -28,8 +28,8 @@ const JETONS: JetonCardData[] = [
     name: "MOTUYA",
     image: "/images/jetons/motuya.png",
     description:
-      "Pack intermédiaire — 25 parties pour approfondir vos connaissances.",
-    price: "1 500 FC",
+      "Pack intermédiaire — 20 parties (dont 5 offertes) pour approfondir vos connaissances.",
+    price: "5000 FC",
     games: "25 parties",
   },
   {
@@ -38,8 +38,8 @@ const JETONS: JetonCardData[] = [
     image: "/images/jetons/elonga.png",
     description:
       "Pack expert — 60 parties (dont 10 offertes) pour les champions.",
-    price: "3 000 FC",
-    games: "60 parties (50+10)",
+    price: "10 000 FC",
+    games: "60 parties",
   },
 ];
 

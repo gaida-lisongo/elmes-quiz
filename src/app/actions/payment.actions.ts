@@ -1,7 +1,7 @@
 "use server";
 
 import connectToDb from "@/app/lib/utils/db";
-import Player from "@/app/lib/models/Player";
+import Player, { IRetrait } from "@/app/lib/models/Player";
 import Agent from "@/app/lib/models/Agent";
 import User from "@/app/lib/models/User";
 import { getSession } from "@/lib/utils/auth";
@@ -10,6 +10,7 @@ import {
   initiatePayout,
   checkStatus,
 } from "@/services/payment.service";
+import type { PipelineStage } from "mongoose";
 
 // ── Recharge Joueur ────────────────────────────────────────────────
 
@@ -410,7 +411,7 @@ export async function checkRetraitStatusAction(retraitIndex: number) {
       if (!r) return { success: false, error: "Retrait introuvable." };
       if (r.status !== "EN_ATTENTE") return { success: true, status: r.status, message: "Déjà traité." };
 
-      const statusCheck = await checkStatus(r.providerTxId);
+      const statusCheck = await checkStatus(r.providerTxId as string);
       if (!statusCheck.success) return { success: false, error: statusCheck.error || "Impossible de vérifier." };
 
       const newStatus = statusCheck.status || "ECHEC";
@@ -421,7 +422,7 @@ export async function checkRetraitStatusAction(retraitIndex: number) {
         if (user) { user.solde = Math.max(0, user.solde - r.amount); await user.save(); }
       }
       await agent.save();
-      retraitDoc = agent.retraits[retraitIndex];
+      retraitDoc = agent.retraits[retraitIndex] as IRetrait;
     }
 
     return {
@@ -467,5 +468,162 @@ export async function getMyRetraitsAction() {
   } catch (error: any) {
     console.error("[getMyRetraitsAction]", error);
     return { success: false, error: error.message || "Erreur." };
+  }
+}
+
+// ── Ventes / Supervision Admin ─────────────────────────────────────
+
+export interface VentesRechargeItem {
+  playerId: string;
+  playerPseudo: string;
+  playerPhone: string;
+  rechargeIndex: number;
+  amount: number;
+  providerTxId: string;
+  status: "EN_ATTENTE" | "SUCCES" | "ECHEC";
+  targetLevel: number;
+  createdAt: Date;
+}
+
+export interface VentesMetrics {
+  total: number;
+  enAttente: number;
+  succes: number;
+  echec: number;
+  montantTotal: number;
+}
+
+export interface VentesRechargesData {
+  recharges: VentesRechargeItem[];
+  metrics: VentesMetrics;
+  targetLevel: number;
+  packName: string;
+}
+
+const PACK_NAMES: Record<number, string> = {
+  1: "ELEMBO",
+  2: "MOTUYA",
+  3: "ELONGA",
+};
+
+/**
+ * Récupère toutes les recharges d'un niveau cible donné (usage admin).
+ * Utilise une agrégation MongoDB optimisée pour extraire les recharges
+ * du tableau imbriqué `Player.recharges` filtré par `targetLevel`.
+ *
+ * @param targetLevel - Niveau cible (1 | 2 | 3)
+ */
+export async function getVentesRechargesAction(
+  targetLevel: number,
+): Promise<{ success: boolean; data?: VentesRechargesData; error?: string }> {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: "Non connecté." };
+
+    if (![1, 2, 3].includes(targetLevel)) {
+      return { success: false, error: "Niveau cible invalide (1, 2 ou 3)." };
+    }
+
+    await connectToDb();
+
+    // Agrégation : unwind recharges, filtrer par targetLevel, lookup User pour pseudo/phone
+    const pipeline: PipelineStage[] = [
+      // Étape 1 : Unwind du tableau recharges avec index
+      {
+        $unwind: {
+          path: "$recharges",
+          preserveNullAndEmptyArrays: false,
+          includeArrayIndex: "rechargeIndex",
+        },
+      },
+      // Étape 2 : Filtrer par targetLevel
+      { $match: { "recharges.targetLevel": targetLevel } },
+      // Étape 3 : Lookup vers User pour récupérer pseudo et telephone
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      // Étape 4 : Unwind user (un seul)
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+      // Étape 5 : Projection finale
+      {
+        $project: {
+          _id: 0,
+          playerId: { $toString: "$_id" },
+          playerPseudo: { $ifNull: ["$user.pseudo", "Inconnu"] },
+          playerPhone: { $ifNull: ["$user.telephone", "N/A"] },
+          rechargeIndex: 1,
+          amount: "$recharges.amount",
+          providerTxId: "$recharges.providerTxId",
+          status: "$recharges.status",
+          targetLevel: "$recharges.targetLevel",
+          createdAt: "$recharges.createdAt",
+        },
+      },
+      // Étape 6 : Trier par date décroissante
+      { $sort: { createdAt: -1 } },
+    ];
+
+    const results = await Player.aggregate(pipeline);
+
+    // Calculer les métriques
+    const metrics: VentesMetrics = {
+      total: results.length,
+      enAttente: results.filter((r) => r.status === "EN_ATTENTE").length,
+      succes: results.filter((r) => r.status === "SUCCES").length,
+      echec: results.filter((r) => r.status === "ECHEC").length,
+      montantTotal: results.reduce((sum, r) => sum + (r.amount || 0), 0),
+    };
+
+    return {
+      success: true,
+      data: {
+        recharges: results as VentesRechargeItem[],
+        metrics,
+        targetLevel,
+        packName: PACK_NAMES[targetLevel] || `Niveau ${targetLevel}`,
+      },
+    };
+  } catch (error: any) {
+    console.error("[getVentesRechargesAction]", error);
+    return { success: false, error: error.message || "Erreur serveur." };
+  }
+}
+
+/**
+ * Supprime une recharge d'un joueur (admin uniquement).
+ *
+ * @param playerId  - ID MongoDB du document Player
+ * @param rechargeIndex - Index de la recharge dans le tableau recharges[]
+ */
+export async function deleteRechargeAction(
+  playerId: string,
+  rechargeIndex: number,
+) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: "Non connecté." };
+
+    await connectToDb();
+
+    const player = await Player.findById(playerId);
+    if (!player) return { success: false, error: "Joueur introuvable." };
+
+    if (rechargeIndex < 0 || rechargeIndex >= player.recharges.length) {
+      return { success: false, error: "Index de recharge invalide." };
+    }
+
+    // Supprimer l'élément du tableau
+    player.recharges.splice(rechargeIndex, 1);
+    await player.save();
+
+    return { success: true, message: "Recharge supprimée avec succès." };
+  } catch (error: any) {
+    console.error("[deleteRechargeAction]", error);
+    return { success: false, error: error.message || "Erreur lors de la suppression." };
   }
 }
