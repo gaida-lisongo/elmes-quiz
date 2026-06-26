@@ -151,7 +151,7 @@ export default function SignUpForm({ refSlug }: { refSlug?: string }) {
               </div>
 
               <div>
-                <Button className="w-full" size="sm" disabled={loading}>
+                <Button className="w-full" size="sm" disabled={loading} type='submit'>
                   {loading ? 'Inscription...' : "S'inscrire"}
                 </Button>
               </div>
