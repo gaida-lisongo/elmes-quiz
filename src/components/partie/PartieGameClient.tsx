@@ -128,7 +128,7 @@ const PartieGameClient: React.FC<PartieGameClientProps> = ({
           </h1>
 
           {categorieDescription && (
-            <p className="text-sm leading-relaxed text-gray-300">
+            <p className="text-sm leading-relaxed text-gray-300 whitespace-pre-line">
               {categorieDescription}
             </p>
           )}
