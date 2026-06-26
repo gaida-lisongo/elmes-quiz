@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import MathRenderer from '@/components/common/MathRenderer';
 import { Loader2, Timer, CheckCircle2, XCircle } from 'lucide-react';
+import { useSound } from '@/context/SoundContext';
 import type { QuestionClient, SubmitAnswerResult } from '@/app/actions/partie.actions';
 
 interface GameEngineProps {
@@ -36,6 +37,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
   const frozenRef = useRef(false);
   const question = questions[currentIndex];
+  const { playSound } = useSound();
 
   // ── Compte à rebours purement visuel (autorité = serveur) ──
   useEffect(() => {
@@ -90,6 +92,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
         if (result.correct && !result.gameOver) {
           // Bonne réponse → question suivante, nouveau délai serveur
+          playSound("correct");
           setFeedback('correct');
           if (result.nextExpiresAt) {
             setExpiresAt(result.nextExpiresAt);
@@ -99,7 +102,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
             setTimeout(() => setCurrentIndex((i) => i + 1), 300);
           }, 500);
         } else {
-          // Fin de partie (échec, timeout ou victoire)
+          // Fin de partie : jouer le son final (win/lose) PUIS le feedback visuel
+          playSound(result.won ? "win" : "lose");
           setFeedback(result.correct ? 'correct' : 'wrong');
           setTimeout(() => {
             setAnimateOut(true);
