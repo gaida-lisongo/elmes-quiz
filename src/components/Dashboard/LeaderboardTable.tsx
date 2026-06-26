@@ -209,7 +209,6 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ initialData }) => {
             {displayEntries.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={6}
                   className="py-8 text-center text-gray-500 dark:text-gray-400"
                 >
                   Aucun joueur trouvé.

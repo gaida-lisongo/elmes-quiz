@@ -10,7 +10,7 @@ export interface QuizOutput {
   assertions: string[];
   reponse: string;
   assets?: string;
-  level: number;
+  level: 0 | 1 | 2 | 3;
   status: boolean;
   type: 'QCM' | 'VRAI_FAUX';
   createdAt: Date;
@@ -49,7 +49,7 @@ export async function createQuestion(data: {
   assertions: string[];
   reponse: string;
   assets?: string;
-  level: number;
+  level: 0 | 1 | 2 | 3;
   type: 'QCM' | 'VRAI_FAUX';
 }): Promise<{ success: boolean; error?: string }> {
   await connectToDb();
@@ -69,7 +69,7 @@ export async function updateQuestion(
     assertions: string[];
     reponse: string;
     assets: string;
-    level: number;
+    level: 0 | 1 | 2 | 3;
     type: 'QCM' | 'VRAI_FAUX';
     status: boolean;
   }>
@@ -129,7 +129,7 @@ export async function bulkToggleStatus(
 /* ── Importer depuis un CSV ── */
 export async function importQuizCsv(data: {
   categorieId: string;
-  level: number;
+  level: 0 | 1 | 2 | 3;
   csvContent: string;
 }): Promise<{ success: boolean; count?: number; errors?: string[] }> {
   await connectToDb();

@@ -89,11 +89,6 @@ const VisualMathInput: React.FC<VisualMathInputProps> = ({
         const { MathfieldElement } = await import("mathlive");
         if (!mounted) return;
 
-        // Définir les options par défaut globalement une fois
-        MathfieldElement.virtualKeyboardMode = "onfocus";
-        MathfieldElement.virtualKeyboards = "numeric roman greek";
-        MathfieldElement.locale = "fr";
-
         setReady(true);
       } catch (err) {
         console.error("[VisualMathInput] Erreur chargement MathLive:", err);
@@ -140,11 +135,11 @@ const VisualMathInput: React.FC<VisualMathInputProps> = ({
       );
 
       // Options du mathfield
-      mf.mathfieldOptions = {
-        virtualKeyboardMode: "onfocus",
-        virtualKeyboards: "numeric roman greek",
-        locale: "fr",
-      };
+      // mf.mathfieldOptions = {
+      //   virtualKeyboardMode: "onfocus",
+      //   virtualKeyboards: "numeric roman greek",
+      //   locale: "fr",
+      // };
 
       // Écouter les changements
       mf.addEventListener("input", () => {

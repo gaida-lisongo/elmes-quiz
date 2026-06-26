@@ -148,7 +148,7 @@ function QuestionInlineForm({ isOpen, onClose, onSuccess, categorieId, editData 
   const [a1, setA1] = useState(""); const [a2, setA2] = useState("");
   const [a3, setA3] = useState(""); const [a4, setA4] = useState("");
   const [correctIndex, setCorrectIndex] = useState<number | null>(null);
-  const [level, setLevel] = useState(0);
+  const [level, setLevel] = useState<0 | 1 | 2 | 3>(0);
   const [type, setType] = useState<"QCM" | "VRAI_FAUX">("QCM");
   const [assets, setAssets] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -258,7 +258,7 @@ function QuestionInlineForm({ isOpen, onClose, onSuccess, categorieId, editData 
           </div>
           <div>
             <Label>Niveau</Label>
-            <select value={level} onChange={(e) => setLevel(Number(e.target.value))}
+            <select value={level} onChange={(e) => setLevel(Number(e.target.value) as 0 | 1 | 2 | 3)}
               className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
               {LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
             </select>
@@ -376,7 +376,7 @@ function ImportCsvModal({ isOpen, onClose, onSuccess, categorieId }: {
   isOpen: boolean; onClose: () => void; onSuccess: () => void; categorieId: string;
 }) {
   const [csvText, setCsvText] = useState("");
-  const [level, setLevel] = useState(0);
+  const [level, setLevel] = useState<0 | 1 | 2 | 3>(0);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; count?: number; errors?: string[] } | null>(null);
 
@@ -420,7 +420,7 @@ function ImportCsvModal({ isOpen, onClose, onSuccess, categorieId }: {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label>Niveau</Label>
-            <select value={level} onChange={(e) => setLevel(Number(e.target.value))}
+            <select value={level} onChange={(e) => setLevel(Number(e.target.value) as 0 | 1 | 2 | 3)}
               className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
               {LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
             </select>
