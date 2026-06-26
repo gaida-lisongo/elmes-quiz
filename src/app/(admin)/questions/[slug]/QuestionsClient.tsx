@@ -377,6 +377,7 @@ function ImportCsvModal({ isOpen, onClose, onSuccess, categorieId }: {
 }) {
   const [csvText, setCsvText] = useState("");
   const [level, setLevel] = useState<0 | 1 | 2 | 3>(0);
+  const [separator, setSeparator] = useState<',' | ';'>(',');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; count?: number; errors?: string[] } | null>(null);
 
@@ -389,15 +390,16 @@ function ImportCsvModal({ isOpen, onClose, onSuccess, categorieId }: {
     e.preventDefault(); if (!csvText.trim()) return;
     setLoading(true); setResult(null);
     try {
-      const res = await importQuizCsv({ categorieId, level, csvContent: csvText });
+      const res = await importQuizCsv({ categorieId, level, csvContent: csvText, separator });
       setResult(res); if (res.success) setTimeout(() => { onSuccess(); onClose(); }, 1500);
     } catch (err: any) { setResult({ success: false, errors: [err.message] }); }
     finally { setLoading(false); }
   };
 
   const downloadTemplate = () => {
-    const header = "énoncé,assertion1,assertion2,assertion3,assertion4,réponse,type";
-    const example = "Quelle est la capitale de la France?,Paris,Londres,Berlin,Madrid,Paris,QCM";
+    const sep = separator;
+    const header = ["énoncé","assertion1","assertion2","assertion3","assertion4","réponse","type"].join(sep);
+    const example = [`"Quelle est la capitale de la France ?"`,"Paris","Londres","Berlin","Madrid","Paris","QCM"].join(sep);
     const blob = new Blob([header + "\n" + example], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = "template_questions.csv"; a.click();
@@ -409,7 +411,8 @@ function ImportCsvModal({ isOpen, onClose, onSuccess, categorieId }: {
       <div className="p-6 max-h-[80vh] overflow-y-auto">
         <h2 className="mb-2 text-lg font-semibold">Importer (CSV)</h2>
       <p className="mb-5 text-sm text-gray-500">
-        Format : <code>énoncé,a1,a2,a3,a4,réponse,type</code>. Séparez simplement par des virgules.
+        Format : <code>énoncé{separator}a1{separator}a2{separator}a3{separator}a4{separator}réponse{separator}type</code>.
+        Les champs contenant des virgules doivent être entre guillemets : <code>"texte, avec virgule"</code>.
       </p>
         {result && (
           <div className={`mb-4 rounded-lg p-3 text-sm ${result.success ? "bg-success-50 text-success-600" : "bg-error-50 text-error-600"}`}>
@@ -418,12 +421,33 @@ function ImportCsvModal({ isOpen, onClose, onSuccess, categorieId }: {
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label>Niveau</Label>
-            <select value={level} onChange={(e) => setLevel(Number(e.target.value) as 0 | 1 | 2 | 3)}
-              className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
-              {LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
-            </select>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <Label>Niveau</Label>
+              <select value={level} onChange={(e) => setLevel(Number(e.target.value) as 0 | 1 | 2 | 3)}
+                className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                {LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <Label>Séparateur</Label>
+              <div className="mt-1 flex rounded-lg border border-gray-300 overflow-hidden dark:border-gray-700">
+                <button
+                  type="button"
+                  onClick={() => setSeparator(',')}
+                  className={`px-4 py-2.5 text-sm font-medium transition-colors ${separator === ',' ? 'bg-brand-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/5'}`}
+                >
+                  Virgule (,)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSeparator(';')}
+                  className={`px-4 py-2.5 text-sm font-medium transition-colors ${separator === ';' ? 'bg-brand-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/5'}`}
+                >
+                  Point-virgule (;)
+                </button>
+              </div>
+            </div>
           </div>
           <div>
             <Label>Fichier CSV</Label>

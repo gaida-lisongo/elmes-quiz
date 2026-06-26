@@ -126,13 +126,49 @@ export async function bulkToggleStatus(
   }
 }
 
+/* ── Parser CSV robuste (gère les guillemets échappatoires) ── */
+function parseCSVLine(line: string, separator: string = ','): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        // Guillemet échappé : "" → "
+        current += '"';
+        i++; // skip le deuxième guillemet
+      } else {
+        // Basculer le mode guillemets
+        inQuotes = !inQuotes;
+      }
+    } else if (char === separator && !inQuotes) {
+      // Fin de champ
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  // Dernier champ
+  result.push(current.trim());
+
+  return result;
+}
+
 /* ── Importer depuis un CSV ── */
 export async function importQuizCsv(data: {
   categorieId: string;
   level: 0 | 1 | 2 | 3;
   csvContent: string;
+  separator?: ',' | ';';
 }): Promise<{ success: boolean; count?: number; errors?: string[] }> {
   await connectToDb();
+
+  const sep = data.separator ?? ',';
 
   const lines = data.csvContent
     .split('\n')
@@ -145,9 +181,9 @@ export async function importQuizCsv(data: {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     // Format attendu: enoncé,a1,a2,a3,a4,réponse,type
-    const parts = line.split(',');
+    const parts = parseCSVLine(line, sep);
     if (parts.length < 4) {
-      errors.push(`Ligne ${i + 1}: format invalide (séparez par des virgules)`);
+      errors.push(`Ligne ${i + 1}: format invalide (${parts.length} colonne(s) trouvée(s), minimum 4 attendues)`);
       continue;
     }
 
@@ -159,7 +195,7 @@ export async function importQuizCsv(data: {
     const type = typeRaw === 'VRAI_FAUX' ? 'VRAI_FAUX' : 'QCM';
 
     if (!enonce || assertions.length < 2 || !reponse) {
-      errors.push(`Ligne ${i + 1}: données incomplètes`);
+      errors.push(`Ligne ${i + 1}: données incomplètes (énoncé="${enonce.slice(0, 30)}...", assertions=${assertions.length}, réponse="${reponse}")`);
       continue;
     }
 
