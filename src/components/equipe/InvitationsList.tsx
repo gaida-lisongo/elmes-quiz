@@ -177,7 +177,8 @@ export default function InvitationsList({ invitations }: InvitationsListProps) {
                         </button>
                         <ArticleReader
                           actualite={readingActualite.actualite}
-                          onClose={handleCloseReader}
+                          showActions={false}
+                          onBack={handleCloseReader}
                         />
                       </div>
                     ) : (

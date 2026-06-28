@@ -156,7 +156,10 @@ export default function ActualitesCarousel({
         <div className="mt-6">
           <ArticleReader
             actualite={readingActualite}
-            onClose={() => setReadingActualite(null)}
+            showActions={isChefOrSecretaire}
+            onBack={() => setReadingActualite(null)}
+            onEdit={setEditingActualite}
+            onDelete={handleDelete}
           />
         </div>
       )}

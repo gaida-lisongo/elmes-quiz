@@ -36,9 +36,9 @@ export default function ActualiteCard({
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
-      {/* Boutons d'action (edit/delete) */}
+      {/* Boutons d'action (edit/delete) - permanents */}
       {showActions && (
-        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-2 right-2 flex gap-1">
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onEdit?.(actualite); }}

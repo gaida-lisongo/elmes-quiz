@@ -1,38 +1,75 @@
 "use client";
 
 import React from "react";
-import { CloseIcon } from "@/icons";
+import { ChevronLeftIcon, PencilIcon, TrashBinIcon } from "@/icons";
 import type { ActualiteData } from "@/app/actions/equipe.actions";
 
 interface ArticleReaderProps {
   actualite: ActualiteData;
-  onClose: () => void;
+  showActions?: boolean;
+  onBack: () => void;
+  onEdit?: (actualite: ActualiteData) => void;
+  onDelete?: (actualiteId: string) => void;
 }
 
-/**
- * Parse le contenu d'une actualité en sections nommées.
- * Les sections sont stockées sous forme "Label: valeur".
- */
-function parseSections(content: string[]): { label: string; text: string }[] {
-  return content.map((line) => {
-    const colonIdx = line.indexOf(": ");
-    if (colonIdx > 0) {
-      return {
-        label: line.slice(0, colonIdx),
-        text: line.slice(colonIdx + 2),
-      };
-    }
-    return { label: "", text: line };
-  });
-}
-
-export default function ArticleReader({ actualite, onClose }: ArticleReaderProps) {
-  const sections = parseSections(actualite.content || []);
-
+export default function ArticleReader({ 
+  actualite, 
+  showActions = false, 
+  onBack,
+  onEdit,
+  onDelete 
+}: ArticleReaderProps) {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] overflow-hidden">
-      {/* Bannière image */}
-      <div className="relative h-48 sm:h-56">
+      {/* Header avec bouton retour et actions */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+        >
+          <ChevronLeftIcon className="h-4 w-4" />
+          Retour
+        </button>
+        
+        {showActions && (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => onEdit?.(actualite)}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600 transition-colors"
+              title="Modifier"
+            >
+              <PencilIcon className="h-3.5 w-3.5" />
+              Modifier
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete?.(actualite._id)}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-error-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-error-600 transition-colors"
+              title="Supprimer"
+            >
+              <TrashBinIcon className="h-3.5 w-3.5" />
+              Supprimer
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Titre principal */}
+      <div className="px-5 py-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          {actualite.title}
+        </h1>
+        {actualite.subTitle && (
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
+            {actualite.subTitle}
+          </p>
+        )}
+      </div>
+
+      {/* Image */}
+      <div className="relative h-64 sm:h-80">
         {actualite.image ? (
           <img
             src={actualite.image}
@@ -42,46 +79,23 @@ export default function ArticleReader({ actualite, onClose }: ArticleReaderProps
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-brand-500 to-purple-600" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-
-        {/* Bouton fermer */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm hover:bg-white/40 transition-colors"
-        >
-          <CloseIcon className="h-4 w-4" />
-        </button>
-
-        {/* Titre + sous-titre sur l'image */}
-        <div className="absolute bottom-0 left-0 right-0 p-5">
-          <h2 className="text-xl font-bold text-white">{actualite.title}</h2>
-          {actualite.subTitle && (
-            <p className="mt-1 text-sm text-gray-200">{actualite.subTitle}</p>
-          )}
-        </div>
       </div>
 
       {/* Contenu */}
-      <div className="p-5 lg:p-6">
-        {sections.length === 0 && (
+      <div className="px-5 py-6">
+        {actualite.content && actualite.content.length > 0 ? (
+          <div className="space-y-4">
+            {actualite.content.map((line, index) => (
+              <p key={index} className="whitespace-pre-wrap text-base leading-relaxed text-gray-700 dark:text-gray-300">
+                {line}
+              </p>
+            ))}
+          </div>
+        ) : (
           <p className="text-sm text-gray-500 dark:text-gray-400 italic">
             Aucun contenu détaillé pour cette actualité.
           </p>
         )}
-
-        {sections.map((section, i) => (
-          <div key={i} className={i > 0 ? "mt-5" : ""}>
-            {section.label && (
-              <h3 className="mb-2 text-base font-semibold text-gray-800 dark:text-white/90">
-                {section.label}
-              </h3>
-            )}
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-              {section.text}
-            </p>
-          </div>
-        ))}
       </div>
     </div>
   );
