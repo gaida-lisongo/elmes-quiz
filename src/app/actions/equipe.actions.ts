@@ -603,7 +603,7 @@ export async function updateActualite(data: {
     });
     if (!equipe) return { success: false, error: 'Vous n\'avez pas les droits.' };
 
-    const actu = equipe.actualites.id(data.actualiteId);
+    const actu = (equipe.actualites as any).id(data.actualiteId);
     if (!actu) return { success: false, error: 'Actualité introuvable.' };
 
     actu.title = data.title.trim();
@@ -643,10 +643,10 @@ export async function deleteActualite(actualiteId: string): Promise<{
     });
     if (!equipe) return { success: false, error: 'Vous n\'avez pas les droits.' };
 
-    const actu = equipe.actualites.id(actualiteId);
+    const actu = (equipe.actualites as any).id(actualiteId);
     if (!actu) return { success: false, error: 'Actualité introuvable.' };
 
-    actu.deleteOne();
+    (actu as any).deleteOne();
     await equipe.save();
 
     revalidatePath('/', 'layout');
