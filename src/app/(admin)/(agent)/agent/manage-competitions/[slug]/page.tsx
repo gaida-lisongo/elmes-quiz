@@ -1,20 +1,20 @@
 import { Metadata } from "next";
 import { getCompetitionBySlug } from "@/app/actions/competition.actions";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import EditCompetitionForm from "./EditCompetitionForm";
+import CompetitionDetailClient from "./CompetitionDetailClient";
 import { notFound } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Éditer la compétition",
+  title: "Détails de la compétition",
   description:
-    "ELMES-QUIZ — Modifier les détails de la compétition.",
+    "ELMES-QUIZ — Détails de la compétition, partage QR code et gestion.",
 };
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export default async function EditCompetitionPage({ params }: PageProps) {
+export default async function CompetitionDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const result = await getCompetitionBySlug(slug);
 
@@ -27,14 +27,13 @@ export default async function EditCompetitionPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageBreadcrumb 
-        pageTitle={`Éditer : ${competition.designation}`}
+        pageTitle={competition.designation}
         links={[
-          { label: "Compétitions", href: "/agent/competitions" },
-          { label: competition.designation, href: `/agent/competitions/${slug}` },
-          { label: "Éditer", href: `/agent/competitions/${slug}/edit` },
+          { label: "Gestion des compétitions", href: "/agent/manage-competitions" },
+          { label: competition.designation, href: `/agent/manage-competitions/${slug}` },
         ]}
       />
-      <EditCompetitionForm competition={competition} />
+      <CompetitionDetailClient competition={competition} />
     </div>
   );
 }

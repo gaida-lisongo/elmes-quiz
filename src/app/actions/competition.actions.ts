@@ -148,7 +148,7 @@ export async function createCompetition(formData: {
       status: 'ACTIVE',
     });
 
-    revalidatePath('/agent/competitions');
+    revalidatePath('/agent/manage-competitions');
     return {
       success: true,
       data: {
@@ -214,7 +214,7 @@ export async function updateCompetition(
 
   try {
     await Competition.findByIdAndUpdate(id, update);
-    revalidatePath('/agent/competitions');
+    revalidatePath('/agent/manage-competitions');
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || 'Erreur lors de la modification.' };
@@ -232,7 +232,7 @@ export async function deleteCompetition(id: string): Promise<{ success: boolean;
 
   try {
     await Competition.findByIdAndDelete(id);
-    revalidatePath('/agent/competitions');
+    revalidatePath('/agent/manage-competitions');
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || 'Erreur lors de la suppression.' };

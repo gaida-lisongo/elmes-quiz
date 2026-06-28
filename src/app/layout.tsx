@@ -8,6 +8,8 @@ import { SoundProvider } from '@/context/SoundContext';
 
 const outfit = Outfit({
   subsets: ["latin"],
+  display: "swap",
+  fallback: ["system-ui", "sans-serif"],
 });
 
 export const metadata: Metadata = {

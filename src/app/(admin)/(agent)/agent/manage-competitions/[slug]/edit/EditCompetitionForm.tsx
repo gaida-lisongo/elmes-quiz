@@ -103,7 +103,7 @@ export default function EditCompetitionForm({ competition }: EditCompetitionForm
         setSuccess('Compétition mise à jour avec succès.');
         router.refresh();
         setTimeout(() => {
-          router.push('/agent/competitions');
+          router.push('/agent/manage-competitions');
         }, 1500);
       } else {
         setError(result.error || 'Erreur lors de la mise à jour.');
@@ -126,7 +126,7 @@ export default function EditCompetitionForm({ competition }: EditCompetitionForm
     try {
       const result = await deleteCompetition(competition._id);
       if (result.success) {
-        router.push('/agent/competitions');
+        router.push('/agent/manage-competitions');
       } else {
         setError(result.error || 'Erreur lors de la suppression.');
       }
@@ -257,7 +257,7 @@ export default function EditCompetitionForm({ competition }: EditCompetitionForm
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push('/agent/competitions')}
+              onClick={() => router.push('/agent/manage-competitions')}
               disabled={loading}
             >
               Annuler

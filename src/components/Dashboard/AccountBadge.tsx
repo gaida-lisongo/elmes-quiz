@@ -48,7 +48,7 @@ function getActions(
     return [
       {
         label: "Compétitions",
-        href: "/agent/competitions",
+        href: "/agent/manage-competitions",
         icon: <ShootingStarIcon className="w-4 h-4" />,
       },
     ];

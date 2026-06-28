@@ -211,8 +211,7 @@ export default function CompetitionDetailClient({ competition }: CompetitionDeta
                 variant="outline"
                 className="w-full"
                 onClick={() => {
-                  // TODO: Éditer la compétition
-                  window.location.href = `/agent/competitions/${competition.slug}/edit`;
+                  window.location.href = `/agent/manage-competitions/${competition.slug}/edit`;
                 }}
               >
                 Éditer la compétition

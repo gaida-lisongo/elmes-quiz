@@ -118,13 +118,13 @@ export default function CompetitionCard({ competition }: CompetitionCardProps) {
           </div>
           <div className="flex items-center gap-2">
             <Link
-              href={`/agent/competitions/${competition.slug}`}
+              href={`/agent/manage-competitions/${competition.slug}`}
               className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600"
             >
               Voir
             </Link>
             <Link
-              href={`/agent/competitions/${competition.slug}/edit`}
+              href={`/agent/manage-competitions/${competition.slug}/edit`}
               className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               Éditer
