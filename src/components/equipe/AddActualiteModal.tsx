@@ -13,14 +13,19 @@ import {
   ArrowRightIcon,
   ChevronLeftIcon,
   CheckCircleIcon,
-  PlusIcon,
-  CloseLineIcon,
+  CloseIcon,
 } from "@/icons";
 
 interface AddActualiteModalProps {
   equipeId: string;
   onClose: () => void;
 }
+
+const CONTENT_SECTIONS = [
+  { key: "objectif", label: "Objectif / Activité", placeholder: "Décrivez l'objectif ou l'activité de cette actualité..." },
+  { key: "description", label: "Description", placeholder: "Donnez plus de détails sur ce qui s'est passé..." },
+  { key: "conclusion", label: "Conclusion", placeholder: "Quelle est la conclusion ou le résultat ?" },
+];
 
 export default function AddActualiteModal({ equipeId, onClose }: AddActualiteModalProps) {
   const router = useRouter();
@@ -33,13 +38,32 @@ export default function AddActualiteModal({ equipeId, onClose }: AddActualiteMod
   const [subTitle, setSubTitle] = useState("");
   const [image, setImage] = useState("");
   const [imageUploading, setImageUploading] = useState(false);
+  const [imageError, setImageError] = useState("");
 
-  // Étape 2 : Sections de contenu
-  const [contentSections, setContentSections] = useState<string[]>([""]);
+  // Étape 2 : Sections de contenu nommées
+  const [contentSections, setContentSections] = useState<Record<string, string>>({
+    objectif: "",
+    description: "",
+    conclusion: "",
+  });
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validation côté client
+    const maxSize = 5 * 1024 * 1024; // 5 MB
+    if (file.size > maxSize) {
+      setImageError("L'image est trop volumineuse (max 5 Mo).");
+      return;
+    }
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      setImageError("Format non supporté. Utilisez JPG, PNG, WebP ou GIF.");
+      return;
+    }
+
+    setImageError("");
     setImageUploading(true);
     try {
       const formData = new FormData();
@@ -48,28 +72,17 @@ export default function AddActualiteModal({ equipeId, onClose }: AddActualiteMod
       if (result.success && result.url) {
         setImage(result.url);
       } else {
-        setError(result.error || "Échec de l'upload.");
+        setImageError(result.error || "Échec de l'upload. Vérifiez votre connexion et réessayez.");
       }
     } catch {
-      setError("Erreur lors de l'upload.");
+      setImageError("Erreur réseau lors de l'upload. Vérifiez votre connexion internet.");
     } finally {
       setImageUploading(false);
     }
   };
 
-  const addContentSection = () => {
-    setContentSections([...contentSections, ""]);
-  };
-
-  const removeContentSection = (index: number) => {
-    if (contentSections.length <= 1) return;
-    setContentSections(contentSections.filter((_, i) => i !== index));
-  };
-
-  const updateContentSection = (index: number, value: string) => {
-    const updated = [...contentSections];
-    updated[index] = value;
-    setContentSections(updated);
+  const updateContentSection = (key: string, value: string) => {
+    setContentSections((prev) => ({ ...prev, [key]: value }));
   };
 
   const canGoNext = step === 1 && title.trim().length >= 2;
@@ -78,11 +91,20 @@ export default function AddActualiteModal({ equipeId, onClose }: AddActualiteMod
     setError("");
     setLoading(true);
     try {
+      // Construire le contenu avec les labels de section
+      const contentParts: string[] = [];
+      for (const section of CONTENT_SECTIONS) {
+        const val = contentSections[section.key]?.trim();
+        if (val) {
+          contentParts.push(`${section.label}: ${val}`);
+        }
+      }
+
       const result = await addActualite({
         title: title.trim(),
         subTitle: subTitle.trim(),
         image,
-        content: contentSections.filter((s) => s.trim()),
+        content: contentParts,
       });
       if (result.success) {
         router.refresh();
@@ -171,10 +193,20 @@ export default function AddActualiteModal({ equipeId, onClose }: AddActualiteMod
                 {imageUploading && (
                   <p className="mt-1 text-xs text-gray-500">Upload en cours...</p>
                 )}
+                {imageError && (
+                  <p className="mt-1 text-xs text-error-500">{imageError}</p>
+                )}
               </div>
               {image && (
-                <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
                   <img src={image} alt="Preview" className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setImage("")}
+                    className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gray-700 text-white hover:bg-gray-900"
+                  >
+                    <CloseIcon className="h-2.5 w-2.5" />
+                  </button>
                 </div>
               )}
             </div>
@@ -195,41 +227,22 @@ export default function AddActualiteModal({ equipeId, onClose }: AddActualiteMod
       {/* Étape 2 */}
       {step === 2 && (
         <div className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Sections de contenu
-            </label>
-            <div className="space-y-2">
-              {contentSections.map((section, index) => (
-                <div key={index} className="flex gap-2">
-                  <TextArea
-                    placeholder={`Section ${index + 1}...`}
-                    rows={2}
-                    value={section}
-                    onChange={(val) => updateContentSection(index, val)}
-                    className="flex-1"
-                  />
-                  {contentSections.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeContentSection(index)}
-                      className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-error-500 dark:hover:bg-gray-800"
-                    >
-                      <CloseLineIcon className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                </div>
-              ))}
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Remplissez les sections ci-dessous pour structurer votre actualité.
+          </p>
+          {CONTENT_SECTIONS.map((section) => (
+            <div key={section.key}>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {section.label}
+              </label>
+              <TextArea
+                placeholder={section.placeholder}
+                rows={3}
+                value={contentSections[section.key]}
+                onChange={(val) => updateContentSection(section.key, val)}
+              />
             </div>
-            <button
-              type="button"
-              onClick={addContentSection}
-              className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-500 hover:text-brand-600"
-            >
-              <PlusIcon className="h-3.5 w-3.5" />
-              Ajouter une section
-            </button>
-          </div>
+          ))}
 
           <div className="flex justify-between pt-2">
             <Button

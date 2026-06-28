@@ -198,7 +198,7 @@ export async function createEquipe(data: {
       return { success: false, error: 'Maximum 4 membres invités (5 avec le capitaine).' };
     }
 
-    // Vérifier qu'aucun des invités n'est déjà dans une équipe
+    // Vérifier qu'aucun des invités n'est déjà dans une équipe et qu'ils ont le bon niveau
     for (const mid of data.membres) {
       const alreadyInTeam = await Equipe.findOne({
         $or: [
@@ -208,6 +208,10 @@ export async function createEquipe(data: {
       });
       if (alreadyInTeam) {
         return { success: false, error: `Un des joueurs invités appartient déjà à une équipe.` };
+      }
+      const invitedPlayer = await Player.findById(mid).select('level').lean();
+      if (!invitedPlayer || ![2, 3].includes(invitedPlayer.level)) {
+        return { success: false, error: 'Seuls les joueurs de niveau Intermédiaire (2) ou Avancé (3) peuvent être invités.' };
       }
     }
 
@@ -269,7 +273,7 @@ export async function searchPlayers(query: string): Promise<{
 
     const userIds = users.map((u: any) => u._id);
 
-    const players = await Player.find({ userId: { $in: userIds } })
+    const players = await Player.find({ userId: { $in: userIds }, level: { $in: [2, 3] } })
       .select('userId school level')
       .lean();
 
@@ -325,6 +329,12 @@ export async function inviteMembre(playerIdToInvite: string): Promise<{
       (m: any) => m.player.toString() === playerIdToInvite
     );
     if (alreadyIn) return { success: false, error: 'Ce joueur est déjà invité ou membre.' };
+
+    // Vérifier le niveau du joueur (seuls les niveaux 2 et 3 peuvent être invités)
+    const playerToInvite = await Player.findById(playerIdToInvite).select('level').lean();
+    if (!playerToInvite || ![2, 3].includes(playerToInvite.level)) {
+      return { success: false, error: 'Seuls les joueurs de niveau Intermédiaire (2) ou Avancé (3) peuvent rejoindre une équipe.' };
+    }
 
     // Vérifier que le joueur n'est pas dans une autre équipe
     const inOtherTeam = await Equipe.findOne({

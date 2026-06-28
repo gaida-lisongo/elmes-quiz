@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Form from "@/components/form/Form";
 import Input from "@/components/form/input/InputField";
 import TextArea from "@/components/form/input/TextArea";
 import FileInput from "@/components/form/input/FileInput";
@@ -10,13 +9,14 @@ import Button from "@/components/ui/button/Button";
 import PlayerSelect from "./PlayerSelect";
 import { createEquipe } from "@/app/actions/equipe.actions";
 import type { PlayerSearchResult } from "@/app/actions/equipe.actions";
+import type { CategorieOutput } from "@/app/actions/categorie.actions";
+import { getAllCategories } from "@/app/actions/categorie.actions";
 import { uploadToCloudinary as uploadFile } from "@/app/actions/cloudinary.actions";
 import {
   ArrowRightIcon,
   ChevronLeftIcon,
   CheckCircleIcon,
-  PlusIcon,
-  CloseLineIcon,
+  CloseIcon,
 } from "@/icons";
 
 interface CreateEquipeFormProps {
@@ -31,16 +31,46 @@ export default function CreateEquipeForm({ onSuccess }: CreateEquipeFormProps) {
 
   // Étape 1 : Description
   const [designation, setDesignation] = useState("");
-  const [descriptionSections, setDescriptionSections] = useState<string[]>([""]);
+  const [categories, setCategories] = useState<CategorieOutput[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [objectif, setObjectif] = useState("");
   const [logo, setLogo] = useState("");
   const [logoUploading, setLogoUploading] = useState(false);
+  const [logoError, setLogoError] = useState("");
 
   // Étape 2 : Invitations
   const [invitedMembers, setInvitedMembers] = useState<PlayerSearchResult[]>([]);
 
+  // Charger les catégories au montage
+  useEffect(() => {
+    getAllCategories().then(setCategories).catch(() => {});
+  }, []);
+
+  const toggleCategory = (designation: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(designation)
+        ? prev.filter((c) => c !== designation)
+        : [...prev, designation]
+    );
+  };
+
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validation côté client
+    const maxSize = 5 * 1024 * 1024; // 5 MB
+    if (file.size > maxSize) {
+      setLogoError("L'image est trop volumineuse (max 5 Mo).");
+      return;
+    }
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      setLogoError("Format non supporté. Utilisez JPG, PNG, WebP ou GIF.");
+      return;
+    }
+
+    setLogoError("");
     setLogoUploading(true);
     try {
       const formData = new FormData();
@@ -49,42 +79,37 @@ export default function CreateEquipeForm({ onSuccess }: CreateEquipeFormProps) {
       if (result.success && result.url) {
         setLogo(result.url);
       } else {
-        setError(result.error || "Échec de l'upload du logo.");
+        setLogoError(result.error || "Échec de l'upload du logo. Vérifiez votre connexion et réessayez.");
       }
     } catch {
-      setError("Erreur lors de l'upload du logo.");
+      setLogoError("Erreur réseau lors de l'upload. Vérifiez votre connexion internet.");
     } finally {
       setLogoUploading(false);
     }
   };
 
-  const addDescriptionSection = () => {
-    setDescriptionSections([...descriptionSections, ""]);
-  };
-
-  const removeDescriptionSection = (index: number) => {
-    if (descriptionSections.length <= 1) return;
-    setDescriptionSections(descriptionSections.filter((_, i) => i !== index));
-  };
-
-  const updateDescriptionSection = (index: number, value: string) => {
-    const updated = [...descriptionSections];
-    updated[index] = value;
-    setDescriptionSections(updated);
-  };
-
   const canGoNext =
     step === 1 &&
     designation.trim().length >= 3 &&
-    descriptionSections.some((s) => s.trim().length > 0);
+    selectedCategories.length > 0 &&
+    objectif.trim().length >= 10;
 
   const handleSubmit = async () => {
     setError("");
     setLoading(true);
     try {
+      // Construire la description : catégories + objectif
+      const descriptionParts: string[] = [];
+      if (selectedCategories.length > 0) {
+        descriptionParts.push(`Catégories: ${selectedCategories.join("; ")}`);
+      }
+      if (objectif.trim()) {
+        descriptionParts.push(`Objectif: ${objectif.trim()}`);
+      }
+
       const result = await createEquipe({
         designation: designation.trim(),
-        description: descriptionSections.filter((s) => s.trim()),
+        description: descriptionParts,
         logo,
         membres: invitedMembers.map((m) => m.playerId),
       });
@@ -144,7 +169,7 @@ export default function CreateEquipeForm({ onSuccess }: CreateEquipeFormProps) {
 
       {/* Étape 1 : Description */}
       {step === 1 && (
-        <div className="space-y-5">
+        <div className="space-y-6">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
             Décrivez votre équipe
           </h3>
@@ -160,6 +185,9 @@ export default function CreateEquipeForm({ onSuccess }: CreateEquipeFormProps) {
               value={designation}
               onChange={(e) => setDesignation(e.target.value)}
             />
+            {designation.length > 0 && designation.length < 3 && (
+              <p className="mt-1 text-xs text-error-500">Minimum 3 caractères.</p>
+            )}
           </div>
 
           {/* Logo */}
@@ -173,54 +201,86 @@ export default function CreateEquipeForm({ onSuccess }: CreateEquipeFormProps) {
                 {logoUploading && (
                   <p className="mt-1 text-xs text-gray-500">Upload en cours...</p>
                 )}
+                {logoError && (
+                  <p className="mt-1 text-xs text-error-500">{logoError}</p>
+                )}
               </div>
               {logo && (
-                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-                  <img
-                    src={logo}
-                    alt="Logo"
-                    className="h-full w-full object-cover"
-                  />
+                <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                  <img src={logo} alt="Logo" className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setLogo("")}
+                    className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gray-700 text-white hover:bg-gray-900"
+                  >
+                    <CloseIcon className="h-3 w-3" />
+                  </button>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Sections description */}
+          {/* Catégories */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Description <span className="text-error-500">*</span>
+              Quelles sont vos catégories ? <span className="text-error-500">*</span>
             </label>
-            <div className="space-y-3">
-              {descriptionSections.map((section, index) => (
-                <div key={index} className="flex gap-2">
-                  <TextArea
-                    placeholder={`Section ${index + 1} — Décrivez votre équipe...`}
-                    rows={2}
-                    value={section}
-                    onChange={(val) => updateDescriptionSection(index, val)}
-                    className="flex-1"
-                  />
-                  {descriptionSections.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeDescriptionSection(index)}
-                      className="mt-1 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-error-500 dark:hover:bg-gray-800"
-                    >
-                      <CloseLineIcon className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
+            <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
+              Sélectionnez une ou plusieurs catégories qui représentent votre équipe.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => {
+                const isSelected = selectedCategories.includes(cat.designation);
+                return (
+                  <button
+                    key={cat._id}
+                    type="button"
+                    onClick={() => toggleCategory(cat.designation)}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all ${
+                      isSelected
+                        ? "bg-brand-500 text-white shadow-sm"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    {isSelected && <CheckCircleIcon className="h-3.5 w-3.5" />}
+                    {cat.designation}
+                  </button>
+                );
+              })}
             </div>
-            <button
-              type="button"
-              onClick={addDescriptionSection}
-              className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-brand-500 hover:text-brand-600"
-            >
-              <PlusIcon className="h-4 w-4" />
-              Ajouter une section
-            </button>
+            {selectedCategories.length > 0 && (
+              <div className="mt-3 rounded-lg border border-brand-200 bg-brand-50/50 px-3 py-2 dark:border-brand-500/20 dark:bg-brand-500/5">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  <span className="font-medium">Sélectionnées :</span>{" "}
+                  {selectedCategories.join(" ; ")}
+                </p>
+              </div>
+            )}
+            {selectedCategories.length === 0 && (
+              <p className="mt-1 text-xs text-gray-400">Aucune catégorie sélectionnée.</p>
+            )}
+          </div>
+
+          {/* Objectif */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Quel est votre objectif sur la plateforme ?{" "}
+              <span className="text-error-500">*</span>
+            </label>
+            <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+              Décrivez ce que votre équipe souhaite accomplir (minimum 10 caractères).
+            </p>
+            <TextArea
+              placeholder="Ex: Nous voulons devenir la meilleure équipe de quiz en culture générale et remporter les compétitions inter-écoles..."
+              rows={4}
+              value={objectif}
+              onChange={setObjectif}
+            />
+            {objectif.length > 0 && objectif.length < 10 && (
+              <p className="mt-1 text-xs text-error-500">
+                Minimum 10 caractères ({objectif.length}/10).
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end pt-4">
@@ -243,8 +303,8 @@ export default function CreateEquipeForm({ onSuccess }: CreateEquipeFormProps) {
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Recherchez des joueurs par pseudo ou téléphone. Maximum 4 membres
-            (5 avec vous, le capitaine). Les invitations devront être acceptées
-            par les joueurs.
+            (5 avec vous, le capitaine). Seuls les joueurs de niveau
+            Intermédiaire (2) ou Avancé (3) peuvent être invités.
           </p>
 
           <div>
@@ -260,24 +320,39 @@ export default function CreateEquipeForm({ onSuccess }: CreateEquipeFormProps) {
 
           {/* Récapitulatif */}
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
-            <h4 className="mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-              Récapitulatif
+            <h4 className="mb-3 text-sm font-semibold text-gray-800 dark:text-white/90">
+              Récapitulatif de votre équipe
             </h4>
-            <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-              <li>
-                <strong>Nom :</strong> {designation}
-              </li>
-              <li>
-                <strong>Description :</strong>{" "}
-                {descriptionSections.filter(Boolean).length} section(s)
-              </li>
-              <li>
-                <strong>Membres invités :</strong>{" "}
-                {invitedMembers.length > 0
-                  ? invitedMembers.map((m) => m.pseudo).join(", ")
-                  : "Aucun"}
-              </li>
-            </ul>
+            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 font-medium text-gray-800 dark:text-white/90 min-w-[80px]">
+                  Nom :
+                </span>
+                <span>{designation}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 font-medium text-gray-800 dark:text-white/90 min-w-[80px]">
+                  Catégories :
+                </span>
+                <span>{selectedCategories.join(" ; ")}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 font-medium text-gray-800 dark:text-white/90 min-w-[80px]">
+                  Objectif :
+                </span>
+                <span className="line-clamp-2">{objectif}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 font-medium text-gray-800 dark:text-white/90 min-w-[80px]">
+                  Membres :
+                </span>
+                <span>
+                  {invitedMembers.length > 0
+                    ? invitedMembers.map((m) => m.pseudo).join(", ")
+                    : "Aucun invité"}
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-between pt-4">
