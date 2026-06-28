@@ -107,9 +107,3 @@ export default function EquipeBanner({ equipe, isChef }: EquipeBannerProps) {
     </>
   );
 }
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}

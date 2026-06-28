@@ -150,8 +150,3 @@ export default function ActualitesCarousel({
     </>
   );
 }
-        />
-      )}
-    </>
-  );
-}
