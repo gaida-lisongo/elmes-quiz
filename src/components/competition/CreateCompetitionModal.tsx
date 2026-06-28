@@ -5,9 +5,11 @@ import { createCompetition } from '@/app/actions/competition.actions';
 import { getAllCategories } from '@/app/actions/categorie.actions';
 import Button from '@/components/ui/button/Button';
 import Input from '@/components/form/input/InputField';
+import FileInput from '@/components/form/input/FileInput';
 import Label from '@/components/form/Label';
 import Select from '@/components/form/Select';
 import MultiSelect from '@/components/form/MultiSelect';
+import { uploadToCloudinary } from '@/app/actions/cloudinary.actions';
 import { useRouter } from 'next/navigation';
 
 interface CreateCompetitionModalProps {
@@ -37,6 +39,8 @@ export default function CreateCompetitionModal({ isOpen, onClose }: CreateCompet
     image: '',
     selectedCategories: [] as string[],
   });
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
 
   // Load categories on mount
   React.useEffect(() => {
@@ -63,6 +67,44 @@ export default function CreateCompetitionModal({ isOpen, onClose }: CreateCompet
 
   const handleCategoriesChange = (selected: string[]) => {
     setFormData((prev) => ({ ...prev, selectedCategories: selected }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const maxSize = 5 * 1024 * 1024; // 5 Mo
+    if (file.size > maxSize) {
+      setImageError("L'image est trop volumineuse (max 5 Mo).");
+      return;
+    }
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      setImageError("Format non supporté. Utilisez JPG, PNG, WebP ou GIF.");
+      return;
+    }
+
+    setImageError(null);
+    setImageUploading(true);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
+      const result = await uploadToCloudinary(uploadFormData);
+      if (result.success && result.url) {
+        setFormData((prev) => ({ ...prev, image: result.url as string }));
+      } else {
+        setImageError(result.error || "Échec de l'upload.");
+      }
+    } catch {
+      setImageError("Erreur réseau lors de l'upload.");
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({ ...prev, image: '' }));
+    setImageError(null);
   };
 
   const nextStep = () => {
@@ -213,14 +255,47 @@ export default function CreateCompetitionModal({ isOpen, onClose }: CreateCompet
                 />
               </div>
               <div>
-                <Label htmlFor="image">URL de l'image (optionnel)</Label>
-                <Input
-                  id="image"
-                  name="image"
-                  value={formData.image}
-                  onChange={handleInputChange}
-                  placeholder="https://example.com/image.jpg"
-                />
+                <Label htmlFor="image">Image de la compétition</Label>
+                <div className="flex items-start gap-3">
+                  <div className="flex-1">
+                    <FileInput onChange={handleImageUpload} />
+                    {imageUploading && (
+                      <p className="mt-1 text-xs text-gray-500">Upload en cours...</p>
+                    )}
+                    {imageError && (
+                      <p className="mt-1 text-xs text-error-500">{imageError}</p>
+                    )}
+                  </div>
+                  {formData.image && (
+                    <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={formData.image}
+                        alt="Aperçu"
+                        className="h-full w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gray-700 text-white hover:bg-gray-900"
+                      >
+                        <svg
+                          className="h-2.5 w-2.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
