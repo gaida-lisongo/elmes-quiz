@@ -67,7 +67,7 @@ function getActions(
       return [{ label: "Parrainage", href: "/parrainage" }];
     }
     if (level === 2) {
-      return [{ label: "Mes compétitions", href: "/equipes" }];
+      return [{ label: "Mes compétitions", href: "/competitions" }];
     }
     if (level === 3) {
       return [{ label: "Équipes", href: "/equipe" }];

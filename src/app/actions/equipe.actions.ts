@@ -54,6 +54,21 @@ export interface PlayerSearchResult {
   level: number;
 }
 
+export interface InvitationData {
+  equipeId: string;
+  designation: string;
+  logo: string;
+  description: string[];
+  chefPseudo: string;
+  membresCount: number;
+  actualites: ActualiteData[];
+  metriques: {
+    competitions: number;
+    soldeUsd: number;
+    matchsWin: number;
+  };
+}
+
 // ── Helpers ───────────────────────────────────────────────────────
 
 async function getPlayerId(userId: string): Promise<string | null> {
@@ -277,10 +292,28 @@ export async function searchPlayers(query: string): Promise<{
       .select('userId school level')
       .lean();
 
+    // Exclure les joueurs qui ont déjà une équipe
+    const playerIds = players.map((p: any) => p._id);
+    const playersInTeam = await Equipe.find({
+      $or: [
+        { chefId: { $in: playerIds } },
+        { 'membres.player': { $in: playerIds }, 'membres.status': true },
+      ],
+    }).select('chefId membres').lean();
+
+    const excludedPlayerIds = new Set<string>();
+    for (const eq of playersInTeam) {
+      excludedPlayerIds.add(eq.chefId.toString());
+      for (const m of eq.membres) {
+        if (m.status) excludedPlayerIds.add(m.player.toString());
+      }
+    }
+
     const userMap = new Map(users.map((u: any) => [u._id.toString(), u]));
 
     const results: PlayerSearchResult[] = players
       .filter((p: any) => p._id.toString() !== playerId) // exclure soi-même
+      .filter((p: any) => !excludedPlayerIds.has(p._id.toString())) // exclure ceux déjà en équipe
       .map((p: any) => {
         const u = userMap.get(p.userId.toString());
         return {
@@ -451,6 +484,15 @@ export async function acceptInvitation(equipeId: string): Promise<{
     const myPlayerId = await getPlayerId(session.userId);
     if (!myPlayerId) return { success: false, error: 'Profil joueur introuvable.' };
 
+    // Vérifier que le joueur n'est pas déjà dans une équipe
+    const alreadyInTeam = await Equipe.findOne({
+      $or: [
+        { chefId: myPlayerId },
+        { 'membres.player': myPlayerId, 'membres.status': true },
+      ],
+    });
+    if (alreadyInTeam) return { success: false, error: 'Vous appartenez déjà à une équipe.' };
+
     const equipe = await Equipe.findById(equipeId);
     if (!equipe) return { success: false, error: 'Équipe introuvable.' };
 
@@ -462,10 +504,77 @@ export async function acceptInvitation(equipeId: string): Promise<{
     membre.status = true;
     await equipe.save();
 
+    // Supprimer toutes les autres invitations du joueur
+    await Equipe.updateMany(
+      { 'membres.player': myPlayerId, 'membres.status': false, _id: { $ne: equipe._id } },
+      { $pull: { membres: { player: myPlayerId, status: false } } }
+    );
+
     revalidatePath('/', 'layout');
     return { success: true };
   } catch (error: any) {
     console.error('[acceptInvitation]', error);
+    return { success: false, error: error.message || 'Erreur serveur.' };
+  }
+}
+
+// ── Récupérer les invitations du joueur ───────────────────────────
+
+export async function getMyInvitations(): Promise<{
+  success: boolean;
+  data?: InvitationData[];
+  error?: string;
+}> {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: 'Non authentifié.' };
+
+    await connectToDb();
+
+    const myPlayerId = await getPlayerId(session.userId);
+    if (!myPlayerId) return { success: false, error: 'Profil joueur introuvable.' };
+
+    // Trouver toutes les équipes où le joueur est invité (status: false)
+    const equipes = await Equipe.find({
+      'membres.player': myPlayerId,
+      'membres.status': false,
+    })
+      .populate('chefId', 'userId')
+      .lean();
+
+    if (!equipes.length) return { success: true, data: [] };
+
+    // Récupérer les pseudos des chefs
+    const chefPlayerIds = equipes.map((e: any) => e.chefId?._id?.toString() || e.chefId?.toString()).filter(Boolean);
+    const chefs = await Player.find({ _id: { $in: chefPlayerIds } })
+      .populate('userId', 'pseudo')
+      .lean();
+    const chefMap = new Map(chefs.map((c: any) => [c._id.toString(), c]));
+
+    const invitations: InvitationData[] = equipes.map((e: any) => {
+      const chefId = e.chefId?._id?.toString() || e.chefId?.toString();
+      const chef = chefMap.get(chefId);
+      return {
+        equipeId: e._id.toString(),
+        designation: e.designation,
+        logo: e.logo || '',
+        description: e.description || [],
+        chefPseudo: chef?.userId?.pseudo || 'Inconnu',
+        membresCount: e.membres.filter((m: any) => m.status).length + 1, // +1 pour le chef
+        actualites: (e.actualites || []).map((a: any) => ({
+          _id: a._id?.toString() || '',
+          title: a.title || '',
+          subTitle: a.subTitle || '',
+          image: a.image || '',
+          content: a.content || [],
+        })),
+        metriques: e.metriques || { competitions: 0, soldeUsd: 0, matchsWin: 0 },
+      };
+    });
+
+    return { success: true, data: invitations };
+  } catch (error: any) {
+    console.error('[getMyInvitations]', error);
     return { success: false, error: error.message || 'Erreur serveur.' };
   }
 }
