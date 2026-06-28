@@ -13,7 +13,7 @@ import type { PlayerSearchResult } from "@/app/actions/equipe.actions";
 import { uploadToCloudinary as uploadFile } from "@/app/actions/cloudinary.actions";
 import {
   ArrowRightIcon,
-  ArrowLeftIcon,
+  ChevronLeftIcon,
   CheckCircleIcon,
   PlusIcon,
   CloseLineIcon,
@@ -284,7 +284,7 @@ export default function CreateEquipeForm({ onSuccess }: CreateEquipeFormProps) {
             <Button
               variant="outline"
               onClick={() => setStep(1)}
-              startIcon={<ArrowLeftIcon className="h-4 w-4" />}
+              startIcon={<ChevronLeftIcon className="h-4 w-4" />}
             >
               Retour
             </Button>

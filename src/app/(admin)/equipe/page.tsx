@@ -13,7 +13,6 @@ export const metadata: Metadata = {
 };
 
 export default async function EquipePage() {
-  const session = await getSession();
   const result = await getMyEquipe();
 
   // Erreur serveur

@@ -11,7 +11,7 @@ import { addActualite } from "@/app/actions/equipe.actions";
 import { uploadToCloudinary } from "@/app/actions/cloudinary.actions";
 import {
   ArrowRightIcon,
-  ArrowLeftIcon,
+  ChevronLeftIcon,
   CheckCircleIcon,
   PlusIcon,
   CloseLineIcon,
@@ -235,7 +235,7 @@ export default function AddActualiteModal({ equipeId, onClose }: AddActualiteMod
             <Button
               variant="outline"
               onClick={() => setStep(1)}
-              startIcon={<ArrowLeftIcon className="h-4 w-4" />}
+              startIcon={<ChevronLeftIcon className="h-4 w-4" />}
               size="sm"
             >
               Retour
