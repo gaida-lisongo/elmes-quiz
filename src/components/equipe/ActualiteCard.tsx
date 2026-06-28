@@ -1,15 +1,24 @@
 "use client";
 
 import React from "react";
+import { PencilIcon, TrashBinIcon } from "@/icons";
 import type { ActualiteData } from "@/app/actions/equipe.actions";
 
 interface ActualiteCardProps {
   actualite: ActualiteData;
+  showActions?: boolean;
+  onEdit?: (actualite: ActualiteData) => void;
+  onDelete?: (actualiteId: string) => void;
 }
 
-export default function ActualiteCard({ actualite }: ActualiteCardProps) {
+export default function ActualiteCard({
+  actualite,
+  showActions = false,
+  onEdit,
+  onDelete,
+}: ActualiteCardProps) {
   return (
-    <div className="relative h-64 w-72 flex-shrink-0 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+    <div className="relative h-64 w-72 flex-shrink-0 overflow-hidden rounded-xl border border-gray-200 group dark:border-gray-700">
       {/* Image de fond avec overlay */}
       {actualite.image ? (
         <img
@@ -21,6 +30,28 @@ export default function ActualiteCard({ actualite }: ActualiteCardProps) {
         <div className="absolute inset-0 bg-gradient-to-br from-brand-500 to-purple-600" />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+
+      {/* Boutons d'action (edit/delete) */}
+      {showActions && (
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onEdit?.(actualite); }}
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-700 hover:bg-white hover:text-brand-600 transition-colors"
+            title="Modifier"
+          >
+            <PencilIcon className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onDelete?.(actualite._id); }}
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-700 hover:bg-white hover:text-error-600 transition-colors"
+            title="Supprimer"
+          >
+            <TrashBinIcon className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Contenu */}
       <div className="absolute bottom-0 left-0 right-0 p-4">

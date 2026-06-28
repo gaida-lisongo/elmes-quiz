@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import ActualiteCard from "./ActualiteCard";
 import AddActualiteModal from "./AddActualiteModal";
+import EditActualiteModal from "./EditActualiteModal";
+import { deleteActualite } from "@/app/actions/equipe.actions";
 import { PlusIcon, ChevronLeftIcon, ChevronRightIcon } from "@/icons";
 import type { ActualiteData, EquipeData } from "@/app/actions/equipe.actions";
 
@@ -17,8 +20,10 @@ export default function ActualitesCarousel({
   equipe,
   isChefOrSecretaire,
 }: ActualitesCarouselProps) {
+  const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingActualite, setEditingActualite] = useState<ActualiteData | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
@@ -43,6 +48,14 @@ export default function ActualitesCarousel({
     if (!el) return;
     const amount = 300;
     el.scrollBy({ left: direction === "left" ? -amount : amount, behavior: "smooth" });
+  };
+
+  const handleDelete = async (actualiteId: string) => {
+    if (!confirm("Supprimer cette actualité ? Cette action est irréversible.")) return;
+    const result = await deleteActualite(actualiteId);
+    if (result.success) {
+      router.refresh();
+    }
   };
 
   return (
@@ -108,7 +121,13 @@ export default function ActualitesCarousel({
             </div>
           )}
           {actualites.map((actu) => (
-            <ActualiteCard key={actu._id} actualite={actu} />
+            <ActualiteCard
+              key={actu._id}
+              actualite={actu}
+              showActions={isChefOrSecretaire}
+              onEdit={setEditingActualite}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       </div>
@@ -118,6 +137,19 @@ export default function ActualitesCarousel({
         <AddActualiteModal
           equipeId={equipe._id}
           onClose={() => setShowAddModal(false)}
+        />
+      )}
+
+      {/* Modal d'édition d'actualité */}
+      {editingActualite && (
+        <EditActualiteModal
+          actualite={editingActualite}
+          onClose={() => setEditingActualite(null)}
+        />
+      )}
+    </>
+  );
+}
         />
       )}
     </>

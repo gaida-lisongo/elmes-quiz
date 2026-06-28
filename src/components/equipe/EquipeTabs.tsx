@@ -3,9 +3,9 @@
 import React, { useState } from "react";
 import MembreCard from "./MembreCard";
 import PlayerSelect from "./PlayerSelect";
-import { inviteMembre, toggleSecretaire } from "@/app/actions/equipe.actions";
+import { inviteMembre, toggleSecretaire, removeMembre, deleteEquipe } from "@/app/actions/equipe.actions";
 import { useRouter } from "next/navigation";
-import { PlusIcon, ShootingStarIcon, GroupIcon } from "@/icons";
+import { PlusIcon, ShootingStarIcon, GroupIcon, TrashBinIcon } from "@/icons";
 import type { EquipeData, PlayerSearchResult } from "@/app/actions/equipe.actions";
 
 interface EquipeTabsProps {
@@ -53,6 +53,26 @@ export default function EquipeTabs({ equipe, isChef }: EquipeTabsProps) {
     const result = await toggleSecretaire(playerId);
     if (result.success) {
       router.refresh();
+    }
+  };
+
+  const handleRemoveMembre = async (playerId: string) => {
+    if (!confirm("Retirer ce membre de l'équipe ? Cette action est irréversible.")) return;
+    const result = await removeMembre(playerId);
+    if (result.success) {
+      router.refresh();
+    } else {
+      alert(result.error || "Erreur lors de la suppression.");
+    }
+  };
+
+  const handleDeleteEquipe = async () => {
+    if (!confirm("Supprimer définitivement l'équipe ? Toutes les données seront perdues. Cette action est irréversible.")) return;
+    const result = await deleteEquipe();
+    if (result.success) {
+      router.refresh();
+    } else {
+      alert(result.error || "Erreur lors de la suppression.");
     }
   };
 
@@ -176,9 +196,24 @@ export default function EquipeTabs({ equipe, isChef }: EquipeTabsProps) {
                 isChef={membre.playerId === equipe.chefId}
                 isCurrentUserChef={isChef}
                 onToggleSecretaire={handleToggleSecretaire}
+                onRemove={handleRemoveMembre}
               />
             ))}
           </div>
+
+          {/* Bouton supprimer l'équipe (chef uniquement) */}
+          {isChef && (
+            <div className="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={handleDeleteEquipe}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-error-200 px-3 py-2 text-xs font-medium text-error-600 hover:bg-error-50 dark:border-error-500/30 dark:text-error-400 dark:hover:bg-error-500/10 transition-colors"
+              >
+                <TrashBinIcon className="h-3.5 w-3.5" />
+                Supprimer l&apos;équipe
+              </button>
+            </div>
+          )}
         </div>
       )}
 

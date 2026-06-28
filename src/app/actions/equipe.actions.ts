@@ -476,3 +476,183 @@ export async function getEquipesCount(): Promise<number> {
   await connectToDb();
   return Equipe.countDocuments({});
 }
+
+// ── Modifier l'équipe (chef uniquement) ───────────────────────────
+
+export async function updateEquipe(data: {
+  designation: string;
+  description: string[];
+  logo: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: 'Non authentifié.' };
+
+    await connectToDb();
+
+    const myPlayerId = await getPlayerId(session.userId);
+    if (!myPlayerId) return { success: false, error: 'Profil joueur introuvable.' };
+
+    const equipe = await Equipe.findOne({ chefId: myPlayerId });
+    if (!equipe) return { success: false, error: 'Vous n\'êtes pas capitaine d\'une équipe.' };
+
+    if (data.designation.trim().length < 3) {
+      return { success: false, error: 'Le nom de l\'équipe doit avoir au moins 3 caractères.' };
+    }
+
+    equipe.designation = data.designation.trim();
+    equipe.description = data.description.filter(Boolean);
+    equipe.logo = data.logo || '';
+    await equipe.save();
+
+    revalidatePath('/', 'layout');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[updateEquipe]', error);
+    return { success: false, error: error.message || 'Erreur serveur.' };
+  }
+}
+
+// ── Supprimer l'équipe (chef uniquement) ──────────────────────────
+
+export async function deleteEquipe(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: 'Non authentifié.' };
+
+    await connectToDb();
+
+    const myPlayerId = await getPlayerId(session.userId);
+    if (!myPlayerId) return { success: false, error: 'Profil joueur introuvable.' };
+
+    const equipe = await Equipe.findOne({ chefId: myPlayerId });
+    if (!equipe) return { success: false, error: 'Vous n\'êtes pas capitaine d\'une équipe.' };
+
+    await Equipe.findByIdAndDelete(equipe._id);
+
+    revalidatePath('/', 'layout');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[deleteEquipe]', error);
+    return { success: false, error: error.message || 'Erreur serveur.' };
+  }
+}
+
+// ── Supprimer un membre (chef uniquement) ─────────────────────────
+
+export async function removeMembre(membrePlayerId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: 'Non authentifié.' };
+
+    await connectToDb();
+
+    const myPlayerId = await getPlayerId(session.userId);
+    if (!myPlayerId) return { success: false, error: 'Profil joueur introuvable.' };
+
+    const equipe = await Equipe.findOne({ chefId: myPlayerId });
+    if (!equipe) return { success: false, error: 'Vous n\'êtes pas capitaine d\'une équipe.' };
+
+    // Empêcher de supprimer le chef
+    if (membrePlayerId === myPlayerId) {
+      return { success: false, error: 'Vous ne pouvez pas vous retirer vous-même. Supprimez l\'équipe.' };
+    }
+
+    const idx = equipe.membres.findIndex(
+      (m: any) => m.player.toString() === membrePlayerId
+    );
+    if (idx === -1) return { success: false, error: 'Membre introuvable.' };
+
+    equipe.membres.splice(idx, 1);
+    await equipe.save();
+
+    revalidatePath('/', 'layout');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[removeMembre]', error);
+    return { success: false, error: error.message || 'Erreur serveur.' };
+  }
+}
+
+// ── Modifier une actualité ────────────────────────────────────────
+
+export async function updateActualite(data: {
+  actualiteId: string;
+  title: string;
+  subTitle: string;
+  image: string;
+  content: string[];
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: 'Non authentifié.' };
+
+    await connectToDb();
+
+    const myPlayerId = await getPlayerId(session.userId);
+    if (!myPlayerId) return { success: false, error: 'Profil joueur introuvable.' };
+
+    const equipe = await Equipe.findOne({
+      $or: [
+        { chefId: myPlayerId },
+        { 'membres.player': myPlayerId, 'membres.isSecretary': true, 'membres.status': true },
+      ],
+    });
+    if (!equipe) return { success: false, error: 'Vous n\'avez pas les droits.' };
+
+    const actu = equipe.actualites.id(data.actualiteId);
+    if (!actu) return { success: false, error: 'Actualité introuvable.' };
+
+    actu.title = data.title.trim();
+    actu.subTitle = data.subTitle.trim();
+    actu.image = data.image || '';
+    actu.content = data.content.filter(Boolean);
+    await equipe.save();
+
+    revalidatePath('/', 'layout');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[updateActualite]', error);
+    return { success: false, error: error.message || 'Erreur serveur.' };
+  }
+}
+
+// ── Supprimer une actualité ───────────────────────────────────────
+
+export async function deleteActualite(actualiteId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: 'Non authentifié.' };
+
+    await connectToDb();
+
+    const myPlayerId = await getPlayerId(session.userId);
+    if (!myPlayerId) return { success: false, error: 'Profil joueur introuvable.' };
+
+    const equipe = await Equipe.findOne({
+      $or: [
+        { chefId: myPlayerId },
+        { 'membres.player': myPlayerId, 'membres.isSecretary': true, 'membres.status': true },
+      ],
+    });
+    if (!equipe) return { success: false, error: 'Vous n\'avez pas les droits.' };
+
+    const actu = equipe.actualites.id(actualiteId);
+    if (!actu) return { success: false, error: 'Actualité introuvable.' };
+
+    actu.deleteOne();
+    await equipe.save();
+
+    revalidatePath('/', 'layout');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[deleteActualite]', error);
+    return { success: false, error: error.message || 'Erreur serveur.' };
+  }
+}

@@ -50,7 +50,7 @@ export default async function EquipePage() {
       <PageBreadcrumb pageTitle="Mon Équipe" />
 
       {/* Bannière */}
-      <EquipeBanner equipe={equipe} />
+      <EquipeBanner equipe={equipe} isChef={isChef} />
 
       {/* Carrousel d'actualités */}
       <ActualitesCarousel
