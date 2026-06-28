@@ -32,11 +32,6 @@ export default async function EditCompetitionPage({ params }: PageProps) {
     <div className="space-y-6">
       <PageBreadcrumb 
         pageTitle={`Éditer : ${competition.designation}`}
-        links={[
-          { label: "Gestion des compétitions", href: "/agent/manage-competitions" },
-          { label: competition.designation, href: `/agent/manage-competitions/${slug}` },
-          { label: "Éditer", href: `/agent/manage-competitions/${slug}/edit` },
-        ]}
       />
       <EditCompetitionForm competition={competition} />
     </div>

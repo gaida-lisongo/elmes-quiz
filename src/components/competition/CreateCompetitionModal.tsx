@@ -234,7 +234,6 @@ export default function CreateCompetitionModal({ isOpen, onClose }: CreateCompet
                   name="cagnotte"
                   type="number"
                   min="0"
-                  step="100"
                   value={formData.cagnotte}
                   onChange={handleInputChange}
                   placeholder="Montant de la cagnotte"

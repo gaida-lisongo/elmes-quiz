@@ -18,7 +18,7 @@ export default async function CompetitionDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const result = await getCompetitionBySlug(slug);
 
-  if (!result.success) {
+  if (!result.success || !result.data) {
     notFound();
   }
 
@@ -27,11 +27,7 @@ export default async function CompetitionDetailPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageBreadcrumb 
-        pageTitle={competition.designation}
-        links={[
-          { label: "Gestion des compétitions", href: "/agent/manage-competitions" },
-          { label: competition.designation, href: `/agent/manage-competitions/${slug}` },
-        ]}
+        pageTitle={competition.designation as string}
       />
       <CompetitionDetailClient competition={competition} />
     </div>
