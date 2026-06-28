@@ -70,7 +70,7 @@ function getActions(
       return [{ label: "Mes compétitions", href: "/equipes" }];
     }
     if (level === 3) {
-      return [{ label: "Équipes", href: "/equipes" }];
+      return [{ label: "Équipes", href: "/equipe" }];
     }
   }
   return [];
