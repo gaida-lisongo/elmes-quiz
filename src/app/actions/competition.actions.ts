@@ -72,6 +72,11 @@ export async function getCompetitionBySlug(slug: string): Promise<{ success: boo
     return { success: false, error: 'Accès refusé.' };
   }
 
+  return getPublicCompetitionBySlug(slug);
+}
+
+/* ── Récupérer une compétition par slug (public, sans auth) ── */
+export async function getPublicCompetitionBySlug(slug: string): Promise<{ success: boolean; data?: CompetitionOutput; error?: string }> {
   await connectToDb();
   try {
     const competition = await Competition.findOne({ slug })
