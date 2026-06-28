@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ActualiteCard from "./ActualiteCard";
 import AddActualiteModal from "./AddActualiteModal";
 import EditActualiteModal from "./EditActualiteModal";
+import ArticleReader from "./ArticleReader";
 import { deleteActualite } from "@/app/actions/equipe.actions";
 import { PlusIcon, ChevronLeftIcon, ChevronRightIcon } from "@/icons";
 import type { ActualiteData, EquipeData } from "@/app/actions/equipe.actions";
@@ -24,6 +25,7 @@ export default function ActualitesCarousel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingActualite, setEditingActualite] = useState<ActualiteData | null>(null);
+  const [readingActualite, setReadingActualite] = useState<ActualiteData | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
@@ -127,6 +129,7 @@ export default function ActualitesCarousel({
               showActions={isChefOrSecretaire}
               onEdit={setEditingActualite}
               onDelete={handleDelete}
+              onRead={setReadingActualite}
             />
           ))}
         </div>
@@ -146,6 +149,16 @@ export default function ActualitesCarousel({
           actualite={editingActualite}
           onClose={() => setEditingActualite(null)}
         />
+      )}
+
+      {/* Lecteur d'article (rendu conditionnel) */}
+      {readingActualite && (
+        <div className="mt-6">
+          <ArticleReader
+            actualite={readingActualite}
+            onClose={() => setReadingActualite(null)}
+          />
+        </div>
       )}
     </>
   );

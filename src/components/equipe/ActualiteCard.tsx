@@ -9,6 +9,7 @@ interface ActualiteCardProps {
   showActions?: boolean;
   onEdit?: (actualite: ActualiteData) => void;
   onDelete?: (actualiteId: string) => void;
+  onRead?: (actualite: ActualiteData) => void;
 }
 
 export default function ActualiteCard({
@@ -16,9 +17,13 @@ export default function ActualiteCard({
   showActions = false,
   onEdit,
   onDelete,
+  onRead,
 }: ActualiteCardProps) {
   return (
-    <div className="relative h-64 w-72 flex-shrink-0 overflow-hidden rounded-xl border border-gray-200 group dark:border-gray-700">
+    <div
+      onClick={() => onRead?.(actualite)}
+      className={`relative h-64 w-72 flex-shrink-0 overflow-hidden rounded-xl border border-gray-200 group dark:border-gray-700 ${onRead ? "cursor-pointer" : ""}`}
+    >
       {/* Image de fond avec overlay */}
       {actualite.image ? (
         <img
