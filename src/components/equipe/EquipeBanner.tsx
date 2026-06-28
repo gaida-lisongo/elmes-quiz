@@ -50,14 +50,25 @@ export default function EquipeBanner({ equipe, isChef }: EquipeBannerProps) {
                 )}
               </div>
               <div className="mt-1 space-y-1">
-                {equipe.description.map((desc, i) => (
-                  <p
-                    key={i}
-                    className="text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    {desc}
-                  </p>
-                ))}
+                {equipe.description.map((desc, i) => {
+                  const isObjectif = desc.startsWith("Objectif:");
+                  const text = isObjectif ? desc.replace("Objectif:", "").trim() : desc;
+                  return (
+                    <p
+                      key={i}
+                      className={`text-sm text-gray-500 dark:text-gray-400 ${isObjectif ? "whitespace-pre-wrap" : ""}`}
+                    >
+                      {isObjectif ? (
+                        <>
+                          <span className="font-medium text-gray-700 dark:text-gray-300">Objectif :</span>{" "}
+                          {text}
+                        </>
+                      ) : (
+                        desc
+                      )}
+                    </p>
+                  );
+                })}
               </div>
               <div className="mt-2 flex items-center gap-2">
                 <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-400">
