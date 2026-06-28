@@ -61,22 +61,23 @@ export async function registerPlayer(formData: FormData) {
     // Résoudre le parrain (ref = pseudo du joueur parrain)
     let referedBy: mongoose.Types.ObjectId | undefined = undefined;
     if (ref) {
-      const parrainUser = await User.findOne({ pseudo: ref.trim() });
-      if (parrainUser) {
-        const parrainPlayer = await Player.findOne({ userId: parrainUser._id });
-        if (parrainPlayer) {
-          referedBy = parrainPlayer._id;
-        }
+      const parrain = await Player.findOne({ code: ref.trim() });
+      if (parrain) {
+        referedBy = parrain._id;
       }
     }
 
     // Création du profil Player associé (10 parties de bienvenue offertes)
+    // Générer un code de parrainage unique pour le nouveau joueur
+    const referralCode = crypto.randomUUID();
+
     await Player.create({
       userId: newUser._id,
       referedBy,
       level: 0,
       school: school.trim(),
       parties: 10,
+      code: referralCode,
       recharges: [],
       metrics: { totalScore: 0, partiesJouees: 0, MeilleurScore: 0 }
     });
