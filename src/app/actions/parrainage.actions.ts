@@ -1,10 +1,10 @@
 "use server";
 
-import crypto from "crypto";
 import connectToDb from "@/app/lib/utils/db";
 import Player from "@/app/lib/models/Player";
 import User from "@/app/lib/models/User";
 import { getSession } from "@/lib/utils/auth";
+import { generateReferralCode } from "@/app/lib/utils/referral";
 import QRCode from "qrcode";
 import { headers } from "next/headers";
 import type { PipelineStage } from "mongoose";
@@ -52,9 +52,10 @@ export async function getOrGenerateReferralCodeAction(): Promise<{
     const player = await Player.findOne({ userId: session.userId });
     if (!player) return { success: false, error: "Profil joueur introuvable." };
 
-    // Générer un code si absent
+    // Générer un code si absent (format lisible : XX-ABCD)
     if (!player.code || player.code === "") {
-      player.code = crypto.randomUUID();
+      const user = await User.findById(session.userId).select("pseudo");
+      player.code = generateReferralCode(user?.pseudo || "XX");
       await player.save();
     }
 
@@ -103,9 +104,10 @@ export async function getParrainageDataAction(): Promise<{
     const player = await Player.findOne({ userId: session.userId });
     if (!player) return { success: false, error: "Profil joueur introuvable." };
 
-    // 2. Générer le code si absent
+    // 2. Générer le code si absent (format lisible : XX-ABCD)
     if (!player.code || player.code === "") {
-      player.code = crypto.randomUUID();
+      const user = await User.findById(session.userId).select("pseudo");
+      player.code = generateReferralCode(user?.pseudo || "XX");
       await player.save();
     }
 

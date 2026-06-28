@@ -8,6 +8,7 @@ import User from '../lib/models/User';
 import Player from '../lib/models/Player';
 import Agent from '../lib/models/Agent';
 import { hashPassword } from './user.actions';
+import { generateReferralCode } from '../lib/utils/referral';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'genie_quiz_secret_key_ultra_secure_2026';
 const COOKIE_NAME = 'genie_session';
@@ -68,8 +69,8 @@ export async function registerPlayer(formData: FormData) {
     }
 
     // Création du profil Player associé (10 parties de bienvenue offertes)
-    // Générer un code de parrainage unique pour le nouveau joueur
-    const referralCode = crypto.randomUUID();
+    // Générer un code de parrainage lisible pour le nouveau joueur
+    const referralCode = generateReferralCode(pseudo);
 
     await Player.create({
       userId: newUser._id,
