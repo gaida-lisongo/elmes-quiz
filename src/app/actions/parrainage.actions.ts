@@ -115,7 +115,7 @@ export async function getParrainageDataAction(): Promise<{
     const headersList = await headers();
     const host = headersList.get("x-forwarded-host") || headersList.get("host") || "localhost:3000";
     const protocol = headersList.get("x-forwarded-proto") || "https";
-    const referralUrl = `${protocol}://${host}/signin?ref=${player.code}`;
+    const referralUrl = `${protocol}://${host}/signup?ref=${player.code}`;
     const qrCodeDataUrl = await QRCode.toDataURL(referralUrl, {
       width: 300,
       margin: 2,
