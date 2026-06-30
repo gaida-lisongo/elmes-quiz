@@ -7,6 +7,7 @@ import GameRules from './GameRules';
 import GameEngine from './GameEngine';
 import GameResult from './GameResult';
 import { initPartie, submitAnswer, refreshQuestions } from '@/app/actions/partie.actions';
+import { useLoader } from '@/context/LoaderContext';
 import type { QuestionClient, SubmitAnswerResult } from '@/app/actions/partie.actions';
 
 type Step = 'REGLEMENT' | 'JEU' | 'RESULTAT';
@@ -14,7 +15,6 @@ type Step = 'REGLEMENT' | 'JEU' | 'RESULTAT';
 interface PartieGameClientProps {
   categorieId: string;
   categorieName: string;
-  categorieDescription: string;
   categorieSlug: string;
   partiesRestantes: number;
   playerLevel: number;
@@ -25,7 +25,6 @@ interface PartieGameClientProps {
 const PartieGameClient: React.FC<PartieGameClientProps> = ({
   categorieId,
   categorieName,
-  categorieDescription,
   categorieSlug,
   partiesRestantes: initialParties,
   playerLevel,
@@ -33,6 +32,7 @@ const PartieGameClient: React.FC<PartieGameClientProps> = ({
   quizIds: initialQuizIds,
 }) => {
   const router = useRouter();
+  const { showLoader, hideLoader } = useLoader();
   const [step, setStep] = useState<Step>('REGLEMENT');
   const [loading, setLoading] = useState(false);
   const [partieId, setPartieId] = useState<string>('');
@@ -45,6 +45,7 @@ const PartieGameClient: React.FC<PartieGameClientProps> = ({
 
   const handleStart = useCallback(async () => {
     setLoading(true);
+    showLoader('Préparation de la partie...');
     setError(null);
     try {
       const res = await initPartie(categorieId, quizIds);
@@ -60,8 +61,9 @@ const PartieGameClient: React.FC<PartieGameClientProps> = ({
       setError('Impossible de lancer la partie. Vérifie ta connexion.');
     } finally {
       setLoading(false);
+      hideLoader();
     }
-  }, [categorieId, quizIds]);
+  }, [categorieId, quizIds, showLoader, hideLoader]);
 
   const handleGameOver = useCallback((result: SubmitAnswerResult) => {
     setGameResult(result);
@@ -70,6 +72,7 @@ const PartieGameClient: React.FC<PartieGameClientProps> = ({
 
   const handleReplay = useCallback(async () => {
     setLoading(true);
+    showLoader('Rechargement des questions...');
     setError(null);
     try {
       const res = await refreshQuestions(categorieId);
@@ -87,13 +90,15 @@ const PartieGameClient: React.FC<PartieGameClientProps> = ({
       setError('Impossible de recharger les questions. Vérifie ta connexion.');
     } finally {
       setLoading(false);
+      hideLoader();
     }
-  }, [categorieId]);
+  }, [categorieId, showLoader, hideLoader]);
 
   const handleBackToHub = useCallback(() => {
+    showLoader('Retour au hub...');
     router.push('/');
     router.refresh();
-  }, [router]);
+  }, [router, showLoader]);
 
   // ── Colonne gauche : image overlay + infos catégorie ──
   const SidebarInfo = () => (
@@ -126,12 +131,6 @@ const PartieGameClient: React.FC<PartieGameClientProps> = ({
           <h1 className="text-2xl font-bold text-white lg:text-3xl">
             {categorieName}
           </h1>
-
-          {categorieDescription && (
-            <p className="text-sm leading-relaxed text-gray-300 whitespace-pre-line">
-              {categorieDescription}
-            </p>
-          )}
 
           <div className="flex items-center gap-4 pt-2">
             <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-sm text-white backdrop-blur-sm">

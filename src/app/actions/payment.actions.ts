@@ -28,6 +28,7 @@ export async function rechargePlayerAction(
   phone: string,
   targetLevel: number,
   amount: number,
+  currency: 'CDF' | 'USD' = 'CDF',
 ) {
   try {
     if (!playerId || !phone || !amount || !targetLevel) {
@@ -41,6 +42,13 @@ export async function rechargePlayerAction(
       return {
         success: false,
         error: "Le niveau cible doit être 1, 2 ou 3.",
+      };
+    }
+
+    if (!['CDF', 'USD'].includes(currency)) {
+      return {
+        success: false,
+        error: "La devise doit être CDF ou USD.",
       };
     }
 
@@ -60,6 +68,7 @@ export async function rechargePlayerAction(
       phone,
       amount,
       reference,
+      currency,
     });
 
     console.log("Recharge Response :", collection)

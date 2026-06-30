@@ -10,16 +10,20 @@ const BASE_URL = process.env.PAYMENT_API_URL;
 
 // ── Types ──────────────────────────────────────────────────────────
 
+export type PaymentCurrency = 'CDF' | 'USD';
+
 export interface CollectionPayload {
   phone: string;
   amount: number;
   reference: string;
+  currency?: PaymentCurrency;
 }
 
 export interface PayoutPayload {
   phone: string;
   amount: number;
   reference: string;
+  currency?: PaymentCurrency;
 }
 
 export interface PaymentResponse {
@@ -78,7 +82,7 @@ export async function initiateCollection(
     const { data, status } = await request<any>('POST', '/collect', {
       channel: 'MOBILE_MONEY',
       amount: payload.amount,
-      currency: 'CDF',
+      currency: payload.currency ?? 'CDF',
       reference: payload.reference,
       phone: payload.phone,
     });
@@ -117,7 +121,7 @@ export async function initiatePayout(
   try {
     const { data, ok } = await request<any>('POST', '/payout', {
       amount: payload.amount,
-      currency: 'CDF',
+      currency: payload?.currency ?? 'CDF',
       phone: payload.phone,
       reference: payload.reference,
     });

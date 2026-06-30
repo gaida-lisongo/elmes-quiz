@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Phone, Coins, Loader2, ArrowUpRight } from "lucide-react";
 import { requestRetraitAction } from "@/app/actions/payment.actions";
+import { useLoader } from "@/context/LoaderContext";
 
 interface RetraitFormProps {
   phone: string;
@@ -11,6 +12,7 @@ interface RetraitFormProps {
 }
 
 export default function RetraitForm({ phone, solde, onSuccess }: RetraitFormProps) {
+  const { showLoader, hideLoader } = useLoader();
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -23,6 +25,7 @@ export default function RetraitForm({ phone, solde, onSuccess }: RetraitFormProp
     if (!isValid) return;
 
     setLoading(true);
+    showLoader('Traitement du retrait...');
     setMessage(null);
 
     try {
@@ -37,6 +40,7 @@ export default function RetraitForm({ phone, solde, onSuccess }: RetraitFormProp
       setMessage({ type: "error", text: err.message || "Erreur inattendue." });
     } finally {
       setLoading(false);
+      hideLoader();
     }
   };
 

@@ -18,8 +18,9 @@ export interface LeaderboardEntry {
 }
 
 export async function getLeaderboard(
-  searchQuery?: string
-): Promise<{ top10: LeaderboardEntry[]; searchedEntry: LeaderboardEntry | null }> {
+  searchQuery?: string,
+  currentUserId?: string
+): Promise<{ top10: LeaderboardEntry[]; searchedEntry: LeaderboardEntry | null; currentUserEntry?: LeaderboardEntry | null }> {
   await connectToDb();
 
   // 1. Récupérer tous les joueurs avec leur User, triés par totalScore descendant
@@ -62,5 +63,10 @@ export async function getLeaderboard(
     searchedEntry = found ?? null;
   }
 
-  return { top10, searchedEntry };
+  // 5. Entrée du joueur connecté (pour vue mobile Player)
+  const currentUserEntry = currentUserId
+    ? allEntries.find((e) => e.userId === currentUserId) ?? null
+    : undefined;
+
+  return { top10, searchedEntry, currentUserEntry };
 }

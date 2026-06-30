@@ -21,9 +21,15 @@ const LEVEL_META: Record<number, { label: string; color: string }> = {
 /* ── Props ── */
 interface LeaderboardTableProps {
   initialData: LeaderboardEntry[];
+  currentUserEntry?: LeaderboardEntry | null;
+  isPlayer?: boolean;
 }
 
-const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ initialData }) => {
+const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
+  initialData,
+  currentUserEntry,
+  isPlayer = false,
+}) => {
   const [top10, setTop10] = useState<LeaderboardEntry[]>(initialData);
   const [searchedEntry, setSearchedEntry] = useState<LeaderboardEntry | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -113,8 +119,34 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ initialData }) => {
         </div>
       </div>
 
+      {/* Vue Player mobile : résumé du joueur connecté uniquement */}
+      {isPlayer && currentUserEntry && (
+        <div className="mb-4 lg:hidden rounded-xl border border-brand-200 dark:border-brand-500/20 bg-brand-50 dark:bg-brand-500/10 p-4">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            Ma position
+          </p>
+          <div className="mt-2 flex items-center justify-between">
+            <div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                #{currentUserEntry.rank}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                {currentUserEntry.totalScore.toLocaleString("fr-FR")} pts
+              </p>
+            </div>
+            <span
+              className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${
+                LEVEL_META[currentUserEntry.level]?.color ?? LEVEL_META[0].color
+              }`}
+            >
+              {LEVEL_META[currentUserEntry.level]?.label ?? "Débutant"}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
-      <div className="max-w-full overflow-x-auto">
+      <div className="max-w-full overflow-x-auto hidden lg:block">
         <Table>
           <TableHeader className="border-gray-100 dark:border-gray-800 border-y">
             <TableRow>
@@ -130,9 +162,11 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ initialData }) => {
               <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                 Parties
               </TableCell>
-              <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                Parties Jouées
-              </TableCell>
+              {!isPlayer && (
+                <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                  Parties Jouées
+                </TableCell>
+              )}
               <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                 Score total
               </TableCell>
@@ -186,15 +220,17 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ initialData }) => {
                     </span>
                   </TableCell>
 
-                  {/* Parties jouées */}
+                  {/* Parties restantes */}
                   <TableCell className="py-3 text-theme-sm text-gray-700 dark:text-gray-300">
                     {entry.parties}
                   </TableCell>
 
-                  {/* Parties Jouées (metrics) */}
-                  <TableCell className="py-3 text-theme-sm text-gray-700 dark:text-gray-300">
-                    {entry.partiesJouees}
-                  </TableCell>
+                  {/* Parties Jouées (metrics) — masqué pour Player */}
+                  {!isPlayer && (
+                    <TableCell className="py-3 text-theme-sm text-gray-700 dark:text-gray-300">
+                      {entry.partiesJouees}
+                    </TableCell>
+                  )}
 
                   {/* Score total */}
                   <TableCell className="py-3">
@@ -224,6 +260,52 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ initialData }) => {
         <p className="mt-3 text-center text-theme-xs text-gray-400 dark:text-gray-500">
           Affichage des {top10.length} meilleurs joueurs
         </p>
+      )}
+
+      {/* Vue mobile allégée pour le Player (top 5 sans parties restantes/jouées des autres) */}
+      {isPlayer && (
+        <div className="lg:hidden space-y-3">
+          {top10.slice(0, 5).map((entry) => {
+            const levelMeta = LEVEL_META[entry.level] ?? LEVEL_META[0];
+            return (
+              <div
+                key={entry.userId}
+                className="flex items-center justify-between rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-white/[0.02] p-3"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold text-gray-800 dark:text-white/90 w-6">
+                    #{entry.rank}
+                  </span>
+                  <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
+                    {entry.photo ? (
+                      <Image
+                        src={entry.photo}
+                        alt={entry.pseudo}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center text-sm font-semibold text-gray-500 dark:text-gray-400">
+                        {entry.pseudo.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800 text-sm dark:text-white/90">
+                      {entry.pseudo}
+                    </p>
+                    <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${levelMeta.color}`}>
+                      {levelMeta.label}
+                    </span>
+                  </div>
+                </div>
+                <span className="inline-flex items-center gap-1 rounded-full bg-success-50 px-2 py-0.5 text-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500">
+                  {entry.totalScore.toLocaleString()} pts
+                </span>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );

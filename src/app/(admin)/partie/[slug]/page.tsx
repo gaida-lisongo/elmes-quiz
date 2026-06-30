@@ -96,7 +96,6 @@ export default async function PartieSlugPage({ params }: Props) {
     <PartieGameClient
       categorieId={cat._id.toString()}
       categorieName={cat.designation}
-      categorieDescription={cat.description ?? ""}
       categorieSlug={slug}
       partiesRestantes={partiesRestantes}
       playerLevel={playerLevel}

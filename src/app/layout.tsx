@@ -5,6 +5,7 @@ import "flatpickr/dist/flatpickr.css";
 import { SidebarProvider } from '@/context/SidebarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { SoundProvider } from '@/context/SoundContext';
+import { LoaderProvider } from '@/context/LoaderContext';
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -40,7 +41,9 @@ export default function RootLayout({
       <body className={`${outfit.className} dark:bg-gray-900`} suppressHydrationWarning>
         <ThemeProvider>
           <SidebarProvider>
-            <SoundProvider>{children}</SoundProvider>
+            <LoaderProvider>
+              <SoundProvider>{children}</SoundProvider>
+            </LoaderProvider>
           </SidebarProvider>
         </ThemeProvider>
       </body>

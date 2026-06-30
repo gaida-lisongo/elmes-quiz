@@ -30,7 +30,10 @@ export const metadata: Metadata = {
 
 export default async function Ecommerce() {
   const user = await getCurrentUserDetailed();
-  const { top10 } = await getLeaderboard();
+  const { top10, currentUserEntry } = await getLeaderboard(
+    undefined,
+    user?._id?.toString()
+  );
 
   // ── Métriques agents (ADMIN / MOD) : chiffre d'affaires + joueurs ──
   const { revenue, totalPlayers } = await getAgentMetrics();
@@ -120,7 +123,13 @@ export default async function Ecommerce() {
       metrics={metrics}
       chartSection={<PartiesChart data={partiesStats} />}
       carouselComponent={carouselComponent}
-      recentOrdersTable={<LeaderboardTable initialData={top10} />}
+      recentOrdersTable={
+        <LeaderboardTable
+          initialData={top10}
+          currentUserEntry={currentUserEntry}
+          isPlayer={user?.role === "PLAYER"}
+        />
+      }
     />
   );
 }
