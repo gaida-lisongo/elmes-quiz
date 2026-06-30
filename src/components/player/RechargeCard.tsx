@@ -22,6 +22,7 @@ export interface RechargeData {
   providerTxId: string;
   status: "EN_ATTENTE" | "SUCCES" | "ECHEC";
   targetLevel: number;
+  currency?: "CDF" | "USD";
   createdAt: Date;
   playerId?: string;
 }
@@ -116,7 +117,9 @@ export default function RechargeCard({
           </p>
           <p className={`text-2xl font-bold mt-0.5 ${cfg.color}`}>
             {formatAmount(recharge.amount)}{" "}
-            <span className="text-sm font-medium">FC</span>
+            <span className="text-sm font-medium">
+              {recharge.currency === "USD" ? "FC (éq. USD)" : "FC"}
+            </span>
           </p>
         </div>
         <div

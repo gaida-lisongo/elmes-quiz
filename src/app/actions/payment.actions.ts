@@ -23,6 +23,13 @@ import type { PipelineStage } from "mongoose";
  * @param targetLevel - Niveau visé (1 | 2 | 3)
  * @param amount   - Montant en CDF
  */
+// Taux de conversion : 1 USD = 2850 CDF (à adapter selon le taux du jour)
+const USD_TO_CDF_RATE = 2850;
+
+export function convertToCDF(amount: number, currency: 'CDF' | 'USD'): number {
+  return currency === 'USD' ? Math.round(amount * USD_TO_CDF_RATE) : amount;
+}
+
 export async function rechargePlayerAction(
   playerId: string,
   phone: string,
@@ -60,10 +67,13 @@ export async function rechargePlayerAction(
       return { success: false, error: "Joueur introuvable." };
     }
 
-    // 2. Générer une référence unique locale
+    // 2. Convertir en CDF pour la base de données
+    const amountCDF = convertToCDF(amount, currency);
+
+    // 3. Générer une référence unique locale
     const reference = `REQ-REC-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
-    // 3. Initier la collecte via FlexPay
+    // 4. Initier la collecte via FlexPay (montant selon la devise choisie)
     const collection = await initiateCollection({
       phone,
       amount,
@@ -83,12 +93,13 @@ export async function rechargePlayerAction(
 
     const orderNumber = collection.orderNumber;
 
-    // 4. Enregistrer le sous-document de recharge dans Player
+    // 5. Enregistrer le sous-document de recharge dans Player (toujours en CDF)
     player.recharges.push({
-      amount,
+      amount: amountCDF,
       providerTxId: orderNumber,
       status: "EN_ATTENTE",
       targetLevel,
+      currency,
       createdAt: new Date(),
     });
 
@@ -97,6 +108,8 @@ export async function rechargePlayerAction(
     return {
       success: true,
       orderNumber,
+      amountCDF,
+      currency,
       message: "Collecte initiée. En attente de confirmation.",
     };
   } catch (error: any) {
@@ -159,7 +172,7 @@ export async function checkRechargeStatusAction(
 
     // Si la collecte est confirmée → créditer les parties du joueur
     if (newStatus === "SUCCES") {
-      // Montant / 200 = nombre de parties gagnées
+      // Le montant est toujours stocké en CDF → Montant / 200 = nombre de parties gagnées
       let partiesGagnees = Math.floor(recharge.amount / 200);
       // ELONGA (targetLevel 3) : 50 parties + 10 de bonus = 60 parties
       if (recharge.targetLevel === 3) {
@@ -238,6 +251,7 @@ export async function getMyRechargesAction() {
           providerTxId: r.providerTxId,
           status: r.status,
           targetLevel: r.targetLevel,
+          currency: r.currency,
           createdAt: r.createdAt,
         })),
       },

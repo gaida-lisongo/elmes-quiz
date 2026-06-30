@@ -150,14 +150,14 @@ const PartieGameClient: React.FC<PartieGameClientProps> = ({
   return (
     <div className="animate-fadeIn">
       {/* Layout 2 colonnes sur desktop */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-6">
         {/* Colonne gauche : image + infos (visible sur tous les écrans, 2/5 sur desktop) */}
-        <div className="lg:col-span-2">
+        {/* <div className="lg:col-span-2">
           <SidebarInfo />
-        </div>
+        </div> */}
 
         {/* Colonne droite : jeu (3/5 sur desktop) */}
-        <div className="lg:col-span-3">
+        <div className="">
           <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
             {/* Erreur */}
             {error && (

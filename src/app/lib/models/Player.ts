@@ -5,6 +5,7 @@ export interface IRecharge {
   providerTxId: string;
   status: 'EN_ATTENTE' | 'SUCCES' | 'ECHEC';
   targetLevel: number;
+  currency?: 'CDF' | 'USD';
   createdAt: Date;
 }
 
@@ -49,6 +50,7 @@ const PlayerSchema: Schema<IPlayer> = new Schema(
         providerTxId: { type: String, required: true },
         status: { type: String, enum: ['EN_ATTENTE', 'SUCCES', 'ECHEC'], default: 'EN_ATTENTE' },
         targetLevel: { type: Number, required: true },
+        currency: { type: String, enum: ['CDF', 'USD'], default: 'CDF' },
         createdAt: { type: Date, default: Date.now }
       }
     ],
