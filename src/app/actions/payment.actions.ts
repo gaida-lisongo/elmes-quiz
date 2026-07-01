@@ -24,11 +24,7 @@ import type { PipelineStage } from "mongoose";
  * @param amount   - Montant en CDF
  */
 // Taux de conversion : 1 USD = 2850 CDF (à adapter selon le taux du jour)
-const USD_TO_CDF_RATE = 2850;
-
-export function convertToCDF(amount: number, currency: 'CDF' | 'USD'): number {
-  return currency === 'USD' ? Math.round(amount * USD_TO_CDF_RATE) : amount;
-}
+const USD_TO_CDF_RATE = 2200;
 
 export async function rechargePlayerAction(
   playerId: string,
@@ -52,13 +48,6 @@ export async function rechargePlayerAction(
       };
     }
 
-    if (!['CDF', 'USD'].includes(currency)) {
-      return {
-        success: false,
-        error: "La devise doit être CDF ou USD.",
-      };
-    }
-
     await connectToDb();
 
     // 1. Vérifier que le joueur existe
@@ -67,18 +56,22 @@ export async function rechargePlayerAction(
       return { success: false, error: "Joueur introuvable." };
     }
 
-    // 2. Convertir en CDF pour la base de données
-    const amountCDF = convertToCDF(amount, currency);
+    // 2. Montant stocké en CDF dans la DB
+    //    Si la devise est USD, on convertit en FC pour l'enregistrement
+    const amountCDF = currency === 'USD' ? Math.round(amount * USD_TO_CDF_RATE) : amount;
+    //    Montant envoyé au provider : en CDF ou USD selon la devise choisie
+    const amountProvider = amount;
+    const providerCurrency = currency;
 
     // 3. Générer une référence unique locale
     const reference = `REQ-REC-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
-    // 4. Initier la collecte via FlexPay (montant selon la devise choisie)
+    // 4. Initier la collecte via FlexPay (dans la devise d'origine)
     const collection = await initiateCollection({
       phone,
-      amount,
+      amount: amountProvider,
       reference,
-      currency,
+      currency: providerCurrency,
     });
 
     console.log("Recharge Response :", collection)

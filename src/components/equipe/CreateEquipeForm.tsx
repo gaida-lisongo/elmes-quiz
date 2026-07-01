@@ -18,6 +18,7 @@ import {
   CheckCircleIcon,
   CloseIcon,
 } from "@/icons";
+import { useLoader } from "@/context/LoaderContext";
 
 interface CreateEquipeFormProps {
   onSuccess?: () => void;
@@ -25,8 +26,8 @@ interface CreateEquipeFormProps {
 
 export default function CreateEquipeForm({ onSuccess }: CreateEquipeFormProps) {
   const router = useRouter();
+  const { showLoader, hideLoader } = useLoader();
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   // Étape 1 : Description
@@ -96,7 +97,7 @@ export default function CreateEquipeForm({ onSuccess }: CreateEquipeFormProps) {
 
   const handleSubmit = async () => {
     setError("");
-    setLoading(true);
+    showLoader("Création de l'équipe...");
     try {
       // Construire la description : catégories + objectif
       const descriptionParts: string[] = [];
@@ -122,7 +123,7 @@ export default function CreateEquipeForm({ onSuccess }: CreateEquipeFormProps) {
     } catch {
       setError("Erreur serveur.");
     } finally {
-      setLoading(false);
+      hideLoader();
     }
   };
 
@@ -365,10 +366,9 @@ export default function CreateEquipeForm({ onSuccess }: CreateEquipeFormProps) {
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={loading}
               endIcon={<CheckCircleIcon className="h-4 w-4" />}
             >
-              {loading ? "Création..." : "Créer l'équipe"}
+              Créer l&apos;équipe
             </Button>
           </div>
         </div>

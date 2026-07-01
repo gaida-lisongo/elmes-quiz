@@ -12,7 +12,7 @@ import { useLoader } from "@/context/LoaderContext";
 const AppHeader: React.FC<{ user: any }> = ({ user }) => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const router = useRouter();
-  const { showLoader } = useLoader();
+  const { showLoader, hideLoader } = useLoader();
   const [isPending, startTransition] = useTransition();
 
   const toggleApplicationMenu = () => {
@@ -25,6 +25,7 @@ const AppHeader: React.FC<{ user: any }> = ({ user }) => {
     showLoader("Déconnexion en cours...");
     startTransition(async () => {
       await logoutUser();
+      hideLoader();
       router.push("/signin");
       router.refresh();
     });

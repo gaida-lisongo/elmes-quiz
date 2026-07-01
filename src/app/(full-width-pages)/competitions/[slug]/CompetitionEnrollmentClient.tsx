@@ -12,6 +12,7 @@ import {
 import Button from '@/components/ui/button/Button';
 import Input from '@/components/form/input/InputField';
 import Label from '@/components/form/Label';
+import { useLoader } from '@/context/LoaderContext';
 import {
   ShootingStarIcon,
   DollarLineIcon,
@@ -34,8 +35,8 @@ export default function CompetitionEnrollmentClient({
   equipe,
 }: CompetitionEnrollmentClientProps) {
   const router = useRouter();
+  const { showLoader, hideLoader } = useLoader();
   const [phone, setPhone] = useState('');
-  const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -66,7 +67,7 @@ export default function CompetitionEnrollmentClient({
       return;
     }
 
-    setLoading(true);
+    showLoader('Inscription à la compétition...');
     try {
       const result = await initiateEnrollementAction(competition._id, phone.trim());
       if (result.success) {
@@ -79,13 +80,13 @@ export default function CompetitionEnrollmentClient({
     } catch (err: any) {
       setError(err.message || 'Une erreur est survenue.');
     } finally {
-      setLoading(false);
+      hideLoader();
     }
   };
 
   const handleCheckStatus = async () => {
     if (!enrollementId) return;
-    setChecking(true);
+    showLoader('Vérification du paiement...');
     setError(null);
     try {
       const result = await checkEnrollementStatusAction(enrollementId);
@@ -100,6 +101,7 @@ export default function CompetitionEnrollmentClient({
     } catch (err: any) {
       setError(err.message || 'Une erreur est survenue.');
     } finally {
+      hideLoader();
       setChecking(false);
     }
   };
@@ -279,9 +281,9 @@ export default function CompetitionEnrollmentClient({
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={loading || !canEnroll}
+                    disabled={!canEnroll}
                   >
-                    {loading ? 'Traitement...' : 'Payer et inscrire mon équipe'}
+                    Payer et inscrire mon équipe
                   </Button>
                 ) : (
                   <Button
@@ -291,7 +293,7 @@ export default function CompetitionEnrollmentClient({
                     onClick={handleCheckStatus}
                     disabled={checking}
                   >
-                    {checking ? 'Vérification...' : 'Vérifier le statut du paiement'}
+                    Vérifier le statut du paiement
                   </Button>
                 )}
               </form>

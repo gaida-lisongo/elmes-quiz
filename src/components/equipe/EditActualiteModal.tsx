@@ -10,6 +10,7 @@ import Button from "@/components/ui/button/Button";
 import { updateActualite } from "@/app/actions/equipe.actions";
 import { uploadToCloudinary } from "@/app/actions/cloudinary.actions";
 import { CheckCircleIcon, CloseIcon } from "@/icons";
+import { useLoader } from "@/context/LoaderContext";
 import type { ActualiteData } from "@/app/actions/equipe.actions";
 
 interface EditActualiteModalProps {
@@ -38,7 +39,7 @@ function parseContent(content: string[]): Record<string, string> {
 
 export default function EditActualiteModal({ actualite, onClose }: EditActualiteModalProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { showLoader, hideLoader } = useLoader();
   const [error, setError] = useState("");
 
   const [title, setTitle] = useState(actualite.title);
@@ -82,7 +83,7 @@ export default function EditActualiteModal({ actualite, onClose }: EditActualite
 
   const handleSubmit = async () => {
     setError("");
-    setLoading(true);
+    showLoader('Modification de l\'actualité...');
     try {
       const contentParts: string[] = [];
       for (const section of CONTENT_SECTIONS) {
@@ -106,7 +107,7 @@ export default function EditActualiteModal({ actualite, onClose }: EditActualite
     } catch {
       setError("Erreur serveur.");
     } finally {
-      setLoading(false);
+      hideLoader();
     }
   };
 
@@ -178,11 +179,10 @@ export default function EditActualiteModal({ actualite, onClose }: EditActualite
           <Button variant="outline" onClick={onClose} size="sm">Annuler</Button>
           <Button
             onClick={handleSubmit}
-            disabled={loading}
             endIcon={<CheckCircleIcon className="h-4 w-4" />}
             size="sm"
           >
-            {loading ? "Enregistrement..." : "Enregistrer"}
+            Enregistrer
           </Button>
         </div>
       </div>

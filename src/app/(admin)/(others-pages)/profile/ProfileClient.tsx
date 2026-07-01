@@ -14,6 +14,7 @@ import {
   updateProfilePassword,
   updateProfilePhoto,
 } from "@/app/actions/profile.actions";
+import { useLoader } from "@/context/LoaderContext";
 
 interface UserProfile {
   _id: string;
@@ -40,7 +41,8 @@ interface UserProfile {
 
 export default function ProfileClient() {
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [ready, setReady] = useState(false);
+  const { showLoader, hideLoader } = useLoader();
 
   // États du formulaire Identité
   const [pseudo, setPseudo] = useState("");
@@ -53,9 +55,6 @@ export default function ProfileClient() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // États de soumission et feedback
-  const [identityLoading, setIdentityLoading] = useState(false);
-  const [passwordLoading, setPasswordLoading] = useState(false);
-  const [photoLoading, setPhotoLoading] = useState(false);
   const [identityMessage, setIdentityMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -75,7 +74,7 @@ export default function ProfileClient() {
 
   // Chargement initial des données
   const fetchUser = useCallback(async () => {
-    setLoading(true);
+    showLoader('Chargement du profil...');
     try {
       const data = await getCurrentUserDetailed();
       if (data) {
@@ -89,9 +88,10 @@ export default function ProfileClient() {
     } catch (err) {
       console.error("Erreur chargement profil", err);
     } finally {
-      setLoading(false);
+      hideLoader();
+      setReady(true);
     }
-  }, []);
+  }, [showLoader, hideLoader]);
 
   useEffect(() => {
     fetchUser();
@@ -102,7 +102,7 @@ export default function ProfileClient() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setPhotoLoading(true);
+    showLoader('Mise à jour de la photo...');
     setPhotoMessage(null);
 
     try {
@@ -134,14 +134,14 @@ export default function ProfileClient() {
     } catch (err: any) {
       setPhotoMessage({ type: "error", text: err.message || "Erreur inattendue." });
     } finally {
-      setPhotoLoading(false);
+      hideLoader();
     }
   };
 
   // Soumission formulaire Identité
   const handleIdentitySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIdentityLoading(true);
+    showLoader('Mise à jour du profil...');
     setIdentityMessage(null);
 
     try {
@@ -170,14 +170,14 @@ export default function ProfileClient() {
     } catch (err: any) {
       setIdentityMessage({ type: "error", text: err.message || "Erreur inattendue." });
     } finally {
-      setIdentityLoading(false);
+      hideLoader();
     }
   };
 
   // Soumission formulaire Mot de passe
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPasswordLoading(true);
+    showLoader('Mise à jour du mot de passe...');
     setPasswordMessage(null);
 
     try {
@@ -202,7 +202,7 @@ export default function ProfileClient() {
     } catch (err: any) {
       setPasswordMessage({ type: "error", text: err.message || "Erreur inattendue." });
     } finally {
-      setPasswordLoading(false);
+      hideLoader();
     }
   };
 
@@ -216,12 +216,8 @@ export default function ProfileClient() {
       .slice(0, 2);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-500 border-t-transparent" />
-      </div>
-    );
+  if (!ready) {
+    return null;
   }
 
   if (!user) {
@@ -293,37 +289,27 @@ export default function ProfileClient() {
             {/* Upload photo button */}
             <div className="flex items-center order-2 gap-2 grow xl:order-3 xl:justify-end">
               <label className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200 lg:inline-flex lg:w-auto">
-                {photoLoading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
-                    Upload...
-                  </span>
-                ) : (
-                  <>
-                    <svg
-                      className="fill-current"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 18 18"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M9 2.25C9.41421 2.25 9.75 2.58579 9.75 3V8.25H15C15.4142 8.25 15.75 8.58579 15.75 9C15.75 9.41421 15.4142 9.75 15 9.75H9.75V15C9.75 15.4142 9.41421 15.75 9 15.75C8.58579 15.75 8.25 15.4142 8.25 15V9.75H3C2.58579 9.75 2.25 9.41421 2.25 9C2.25 8.58579 2.58579 8.25 3 8.25H8.25V3C8.25 2.58579 8.58579 2.25 9 2.25Z"
-                        fill=""
-                      />
-                    </svg>
-                    Photo
-                  </>
-                )}
+                <svg
+                  className="fill-current"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M9 2.25C9.41421 2.25 9.75 2.58579 9.75 3V8.25H15C15.4142 8.25 15.75 8.58579 15.75 9C15.75 9.41421 15.4142 9.75 15 9.75H9.75V15C9.75 15.4142 9.41421 15.75 9 15.75C8.58579 15.75 8.25 15.4142 8.25 15V9.75H3C2.58579 9.75 2.25 9.41421 2.25 9C2.25 8.58579 2.58579 8.25 3 8.25H8.25V3C8.25 2.58579 8.58579 2.25 9 2.25Z"
+                    fill=""
+                  />
+                </svg>
+                Photo
                 <input
                   type="file"
                   accept="image/*"
                   className="hidden"
                   onChange={handlePhotoChange}
-                  disabled={photoLoading}
                 />
               </label>
             </div>
@@ -548,19 +534,11 @@ export default function ProfileClient() {
                 size="sm"
                 variant="outline"
                 onClick={identityModal.closeModal}
-                disabled={identityLoading}
               >
                 Annuler
               </Button>
-              <Button size="sm" type="submit" disabled={identityLoading}>
-                {identityLoading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    Enregistrement...
-                  </span>
-                ) : (
-                  "Enregistrer"
-                )}
+              <Button size="sm" type="submit">
+                Enregistrer
               </Button>
             </div>
           </form>
@@ -643,19 +621,11 @@ export default function ProfileClient() {
                 size="sm"
                 variant="outline"
                 onClick={passwordModal.closeModal}
-                disabled={passwordLoading}
               >
                 Annuler
               </Button>
-              <Button size="sm" type="submit" disabled={passwordLoading}>
-                {passwordLoading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    Mise à jour...
-                  </span>
-                ) : (
-                  "Mettre à jour"
-                )}
+              <Button size="sm" type="submit">
+                Mettre à jour
               </Button>
             </div>
           </form>

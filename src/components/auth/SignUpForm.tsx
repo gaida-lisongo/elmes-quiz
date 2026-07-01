@@ -20,13 +20,11 @@ export default function SignUpForm({ refSlug }: { refSlug?: string }) {
   const [telephone, setTelephone] = useState('');
   const [school, setSchool] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
     showLoader('Création de votre compte...');
 
     try {
@@ -43,16 +41,15 @@ export default function SignUpForm({ refSlug }: { refSlug?: string }) {
 
       if (!result.success) {
         setError(result.error || 'Erreur lors de l\'inscription.');
-        setLoading(false);
         hideLoader();
         return;
       }
 
+      hideLoader();
       router.push('/');
       router.refresh();
     } catch (err: any) {
       setError(err.message || 'Erreur lors de l\'inscription.');
-      setLoading(false);
       hideLoader();
     }
   };
@@ -156,8 +153,8 @@ export default function SignUpForm({ refSlug }: { refSlug?: string }) {
               </div>
 
               <div>
-                <Button className="w-full" size="sm" disabled={loading} type='submit'>
-                  {loading ? 'Inscription...' : "S'inscrire"}
+                <Button className="w-full" size="sm" type='submit'>
+                  S&apos;inscrire
                 </Button>
               </div>
             </div>

@@ -18,7 +18,6 @@ export default function SignInForm({ refSlug }: { refSlug?: string }) {
   const [showPassword, setShowPassword] = useState(false);
   const [telephone, setTelephone] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const signupHref = refSlug ? `/signup?ref=${encodeURIComponent(refSlug)}` : '/signup';
@@ -27,7 +26,6 @@ export default function SignInForm({ refSlug }: { refSlug?: string }) {
     e.preventDefault();
 
     setError('');
-    setLoading(true);
     showLoader('Connexion en cours...');
 
     try {
@@ -42,13 +40,12 @@ export default function SignInForm({ refSlug }: { refSlug?: string }) {
         return;
       }
 
+      hideLoader();
       router.push('/');
       router.refresh();
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.message || 'Erreur lors de la connexion.');
-    } finally {
-      setLoading(false);
       hideLoader();
     }
   };
@@ -127,11 +124,9 @@ export default function SignInForm({ refSlug }: { refSlug?: string }) {
                 <Button 
                   className="w-full" 
                   size="sm" 
-                  disabled={loading} 
                   type="submit"
-                  onClick={() => console.log("Button clicked directly")}
                 >
-                  {loading ? 'Connexion...' : 'Se connecter'}
+                  Se connecter
                 </Button>
               </div>
             </div>

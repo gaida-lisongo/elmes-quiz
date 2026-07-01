@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Phone, Coins, Loader2, ArrowUpRight } from "lucide-react";
+import { Phone, Coins, ArrowUpRight } from "lucide-react";
 import { requestRetraitAction } from "@/app/actions/payment.actions";
 import { useLoader } from "@/context/LoaderContext";
 
@@ -14,7 +14,6 @@ interface RetraitFormProps {
 export default function RetraitForm({ phone, solde, onSuccess }: RetraitFormProps) {
   const { showLoader, hideLoader } = useLoader();
   const [amount, setAmount] = useState("");
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const numericAmount = parseInt(amount, 10) || 0;
@@ -24,7 +23,6 @@ export default function RetraitForm({ phone, solde, onSuccess }: RetraitFormProp
     e.preventDefault();
     if (!isValid) return;
 
-    setLoading(true);
     showLoader('Traitement du retrait...');
     setMessage(null);
 
@@ -39,7 +37,6 @@ export default function RetraitForm({ phone, solde, onSuccess }: RetraitFormProp
     } catch (err: any) {
       setMessage({ type: "error", text: err.message || "Erreur inattendue." });
     } finally {
-      setLoading(false);
       hideLoader();
     }
   };
@@ -85,14 +82,10 @@ export default function RetraitForm({ phone, solde, onSuccess }: RetraitFormProp
 
       <button
         type="submit"
-        disabled={!isValid || loading}
+        disabled={!isValid}
         className="w-full flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-3 text-sm font-semibold text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300 disabled:cursor-not-allowed transition-all duration-200"
       >
-        {loading ? (
-          <><Loader2 className="w-4 h-4 animate-spin" /> Traitement...</>
-        ) : (
-          <><ArrowUpRight className="w-4 h-4" /> Retirer maintenant</>
-        )}
+        <ArrowUpRight className="w-4 h-4" /> Retirer maintenant
       </button>
     </form>
   );

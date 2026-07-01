@@ -5,6 +5,7 @@ import { Modal } from '@/components/ui/modal';
 import Button from '@/components/ui/button/Button';
 import Label from '@/components/form/Label';
 import Select from '@/components/form/Select';
+import { useLoader } from '@/context/LoaderContext';
 
 interface AddAgentModalProps {
   isOpen: boolean;
@@ -16,18 +17,18 @@ const inputClass =
   'h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800';
 
 export default function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps) {
+  const { showLoader, hideLoader } = useLoader();
   const [pseudo, setPseudo] = useState('');
   const [telephone, setTelephone] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('MOD');
   const [secure, setSecure] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+    showLoader("Création de l'agent...");
 
     try {
       const { createAgent } = await import('@/app/actions/user.actions');
@@ -41,7 +42,7 @@ export default function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentMo
 
       if (!result.success) {
         setError(result.error || 'Une erreur est survenue.');
-        setLoading(false);
+        hideLoader();
         return;
       }
 
@@ -55,7 +56,7 @@ export default function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentMo
     } catch (err: any) {
       setError(err.message || "Erreur lors de la creation de l'agent.");
     } finally {
-      setLoading(false);
+      hideLoader();
     }
   };
 
@@ -140,11 +141,11 @@ export default function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentMo
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-2">
-            <Button variant="outline" onClick={onClose} disabled={loading}>
+            <Button variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Creation...' : "Creer l'agent"}
+            <Button type="submit">
+              Creer l&apos;agent
             </Button>
           </div>
         </form>

@@ -5,7 +5,6 @@ import {
   Wallet,
   Plus,
   AlertCircle,
-  Loader2,
   ArrowUpRight,
   Landmark,
 } from "lucide-react";
@@ -15,6 +14,7 @@ import { getMyRetraitsAction, checkRetraitStatusAction } from "@/app/actions/pay
 import { useModal } from "@/hooks/useModal";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
+import { useLoader } from "@/context/LoaderContext";
 
 interface RetraitItem {
   index: number;
@@ -34,19 +34,20 @@ interface RetraitsData {
 
 export default function RetraitsClient() {
   const [data, setData] = useState<RetraitsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [ready, setReady] = useState(false);
   const [checkingIndex, setCheckingIndex] = useState<number | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const formModal = useModal();
+  const { showLoader, hideLoader } = useLoader();
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
+    showLoader('Chargement de vos retraits...');
     try {
       const result = await getMyRetraitsAction();
       if (result.success && result.data) setData(result.data as RetraitsData);
-    } catch {} finally { setLoading(false); }
-  }, []);
+    } catch {} finally { hideLoader(); setReady(true); }
+  }, [showLoader, hideLoader]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -69,8 +70,8 @@ export default function RetraitsClient() {
 
   const handleSuccess = () => { formModal.closeModal(); fetchData(); };
 
-  if (loading) {
-    return <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>;
+  if (!ready) {
+    return null;
   }
 
   if (!data) {

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { GlobalLoader } from "@/components/common/GlobalLoader";
 
 interface LoaderContextType {
@@ -18,6 +19,12 @@ export const LoaderProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("Chargement...");
+  const pathname = usePathname();
+
+  // Auto-hide le loader lors d'un changement de route (filet de sécurité)
+  useEffect(() => {
+    setIsLoading(false);
+  }, [pathname]);
 
   const showLoader = useCallback((msg = "Chargement...") => {
     setMessage(msg);

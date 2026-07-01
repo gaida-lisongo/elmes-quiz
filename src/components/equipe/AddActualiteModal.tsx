@@ -15,6 +15,7 @@ import {
   CheckCircleIcon,
   CloseIcon,
 } from "@/icons";
+import { useLoader } from "@/context/LoaderContext";
 
 interface AddActualiteModalProps {
   equipeId: string;
@@ -29,8 +30,8 @@ const CONTENT_SECTIONS = [
 
 export default function AddActualiteModal({ equipeId, onClose }: AddActualiteModalProps) {
   const router = useRouter();
+  const { showLoader, hideLoader } = useLoader();
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   // Étape 1 : Titre, sous-titre, image
@@ -89,7 +90,7 @@ export default function AddActualiteModal({ equipeId, onClose }: AddActualiteMod
 
   const handleSubmit = async () => {
     setError("");
-    setLoading(true);
+    showLoader('Publication de l\'actualité...');
     try {
       // Construire le contenu avec les labels de section
       const contentParts: string[] = [];
@@ -115,7 +116,7 @@ export default function AddActualiteModal({ equipeId, onClose }: AddActualiteMod
     } catch {
       setError("Erreur serveur.");
     } finally {
-      setLoading(false);
+      hideLoader();
     }
   };
 
@@ -255,11 +256,10 @@ export default function AddActualiteModal({ equipeId, onClose }: AddActualiteMod
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={loading}
               endIcon={<CheckCircleIcon className="h-4 w-4" />}
               size="sm"
             >
-              {loading ? "Publication..." : "Publier"}
+              Publier
             </Button>
           </div>
         </div>

@@ -34,7 +34,6 @@ const PartieGameClient: React.FC<PartieGameClientProps> = ({
   const router = useRouter();
   const { showLoader, hideLoader } = useLoader();
   const [step, setStep] = useState<Step>('REGLEMENT');
-  const [loading, setLoading] = useState(false);
   const [partieId, setPartieId] = useState<string>('');
   const [questionExpiresAt, setQuestionExpiresAt] = useState<number>(0);
   const [gameResult, setGameResult] = useState<SubmitAnswerResult | null>(null);
@@ -44,7 +43,6 @@ const PartieGameClient: React.FC<PartieGameClientProps> = ({
   const [quizIds, setQuizIds] = useState<string[]>(initialQuizIds);
 
   const handleStart = useCallback(async () => {
-    setLoading(true);
     showLoader('Préparation de la partie...');
     setError(null);
     try {
@@ -60,7 +58,6 @@ const PartieGameClient: React.FC<PartieGameClientProps> = ({
     } catch {
       setError('Impossible de lancer la partie. Vérifie ta connexion.');
     } finally {
-      setLoading(false);
       hideLoader();
     }
   }, [categorieId, quizIds, showLoader, hideLoader]);
@@ -71,7 +68,6 @@ const PartieGameClient: React.FC<PartieGameClientProps> = ({
   }, []);
 
   const handleReplay = useCallback(async () => {
-    setLoading(true);
     showLoader('Rechargement des questions...');
     setError(null);
     try {
@@ -89,7 +85,6 @@ const PartieGameClient: React.FC<PartieGameClientProps> = ({
     } catch {
       setError('Impossible de recharger les questions. Vérifie ta connexion.');
     } finally {
-      setLoading(false);
       hideLoader();
     }
   }, [categorieId, showLoader, hideLoader]);
@@ -177,7 +172,6 @@ const PartieGameClient: React.FC<PartieGameClientProps> = ({
                 categorieName={categorieName}
                 partiesRestantes={partiesRestantes}
                 onStart={handleStart}
-                loading={loading}
               />
             )}
 

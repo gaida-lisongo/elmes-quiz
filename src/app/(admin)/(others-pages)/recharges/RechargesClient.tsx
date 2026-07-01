@@ -6,7 +6,6 @@ import {
   Plus,
   RefreshCw,
   AlertCircle,
-  Loader2,
 } from "lucide-react";
 import RechargeCard from "@/components/player/RechargeCard";
 import RechargeForm from "@/components/player/RechargeForm";
@@ -17,6 +16,7 @@ import {
 import { useModal } from "@/hooks/useModal";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
+import { useLoader } from "@/context/LoaderContext";
 
 interface RechargeItem {
   index: number;
@@ -40,7 +40,7 @@ interface PlayerData {
 
 export default function RechargesClient() {
   const [data, setData] = useState<PlayerData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [ready, setReady] = useState(false);
   const [checkingIndex, setCheckingIndex] = useState<number | null>(null);
   const [statusMessage, setStatusMessage] = useState<{
     type: "success" | "error";
@@ -48,9 +48,10 @@ export default function RechargesClient() {
   } | null>(null);
 
   const formModal = useModal();
+  const { showLoader, hideLoader } = useLoader();
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
+    showLoader('Chargement de vos recharges...');
     try {
       const result = await getMyRechargesAction();
       if (result.success && result.data) {
@@ -59,9 +60,10 @@ export default function RechargesClient() {
     } catch (err) {
       console.error("[RechargesClient]", err);
     } finally {
-      setLoading(false);
+      hideLoader();
+      setReady(true);
     }
-  }, []);
+  }, [showLoader, hideLoader]);
 
   useEffect(() => {
     fetchData();
@@ -103,12 +105,8 @@ export default function RechargesClient() {
   const successfulRecharges = data?.recharges.filter((r) => r.status === "SUCCES").length || 0;
   const pendingRecharges = data?.recharges.filter((r) => r.status === "EN_ATTENTE").length || 0;
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
-      </div>
-    );
+  if (!ready) {
+    return null;
   }
 
   if (!data) {

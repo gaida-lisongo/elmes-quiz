@@ -12,6 +12,7 @@ import type { CategorieOutput } from "@/app/actions/categorie.actions";
 import { getAllCategories } from "@/app/actions/categorie.actions";
 import { uploadToCloudinary } from "@/app/actions/cloudinary.actions";
 import { CheckCircleIcon, CloseIcon } from "@/icons";
+import { useLoader } from "@/context/LoaderContext";
 import type { EquipeData } from "@/app/actions/equipe.actions";
 
 interface EditEquipeModalProps {
@@ -21,7 +22,7 @@ interface EditEquipeModalProps {
 
 export default function EditEquipeModal({ equipe, onClose }: EditEquipeModalProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { showLoader, hideLoader } = useLoader();
   const [error, setError] = useState("");
 
   const [designation, setDesignation] = useState(equipe.designation);
@@ -83,7 +84,7 @@ export default function EditEquipeModal({ equipe, onClose }: EditEquipeModalProp
       return;
     }
     setError("");
-    setLoading(true);
+    showLoader("Modification de l'équipe...");
     try {
       const descriptionParts: string[] = [];
       if (selectedCategories.length > 0) {
@@ -107,7 +108,7 @@ export default function EditEquipeModal({ equipe, onClose }: EditEquipeModalProp
     } catch {
       setError("Erreur serveur.");
     } finally {
-      setLoading(false);
+      hideLoader();
     }
   };
 
@@ -208,11 +209,10 @@ export default function EditEquipeModal({ equipe, onClose }: EditEquipeModalProp
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={loading}
             endIcon={<CheckCircleIcon className="h-4 w-4" />}
             size="sm"
           >
-            {loading ? "Enregistrement..." : "Enregistrer"}
+            Enregistrer
           </Button>
         </div>
       </div>

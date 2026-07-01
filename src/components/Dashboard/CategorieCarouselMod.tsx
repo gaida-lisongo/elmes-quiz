@@ -5,6 +5,7 @@ import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, PencilIcon, TrashBinIcon }
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
 import Label from "@/components/form/Label";
+import { useLoader } from "@/context/LoaderContext";
 import type { CategorieOutput } from "@/app/actions/categorie.actions";
 
 /* ── Modale de création/édition de catégorie ── */
@@ -21,9 +22,9 @@ function CategorieFormModal({
   onSuccess,
   editData,
 }: CategorieFormModalProps) {
+  const { showLoader, hideLoader } = useLoader();
   const [designation, setDesignation] = useState("");
   const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   // Synchroniser les champs quand editData change (ouverture edition)
@@ -41,7 +42,7 @@ function CategorieFormModal({
       setError("La désignation est obligatoire.");
       return;
     }
-    setLoading(true);
+    showLoader(editData ? 'Modification de la catégorie...' : 'Création de la catégorie...');
     setError("");
 
     try {
@@ -71,7 +72,7 @@ function CategorieFormModal({
     } catch (err: any) {
       setError(err.message || "Erreur lors de l'enregistrement.");
     } finally {
-      setLoading(false);
+      hideLoader();
     }
   };
 
@@ -110,11 +111,11 @@ function CategorieFormModal({
             />
           </div>
           <div className="flex items-center justify-end gap-3 pt-2">
-            <Button variant="outline" onClick={onClose} disabled={loading}>
+            <Button variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button disabled={loading} type="submit">
-              {loading ? "Enregistrement..." : editData ? "Modifier" : "Créer"}
+            <Button type="submit">
+              {editData ? "Modifier" : "Créer"}
             </Button>
           </div>
         </form>
@@ -138,7 +139,7 @@ const CategorieCarouselMod: React.FC<CategorieCarouselModProps> = ({
   const [formOpen, setFormOpen] = useState(false);
   const [editCat, setEditCat] = useState<CategorieOutput | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const { showLoader, hideLoader } = useLoader();
 
   const visibleCount = 3;
   const maxStartIndex = Math.max(0, categories.length - visibleCount);
@@ -168,7 +169,7 @@ const CategorieCarouselMod: React.FC<CategorieCarouselModProps> = ({
   /* ── Supprimer ── */
   const confirmDelete = async () => {
     if (!deleteId) return;
-    setDeleting(true);
+    showLoader('Suppression de la catégorie...');
     try {
       const { deleteCategorie } = await import(
         "@/app/actions/categorie.actions"
@@ -179,12 +180,13 @@ const CategorieCarouselMod: React.FC<CategorieCarouselModProps> = ({
     } catch {
       // silence
     } finally {
-      setDeleting(false);
+      hideLoader();
     }
   };
 
   /* ── Toggle status ── */
   const toggleStatus = async (cat: CategorieOutput) => {
+    showLoader('Mise à jour de la catégorie...');
     try {
       const { updateCategorie } = await import(
         "@/app/actions/categorie.actions"
@@ -193,6 +195,8 @@ const CategorieCarouselMod: React.FC<CategorieCarouselModProps> = ({
       await refresh();
     } catch {
       // silence
+    } finally {
+      hideLoader();
     }
   };
 
@@ -384,12 +388,11 @@ const CategorieCarouselMod: React.FC<CategorieCarouselModProps> = ({
             <Button
               variant="outline"
               onClick={() => setDeleteId(null)}
-              disabled={deleting}
             >
               Annuler
             </Button>
-            <Button onClick={confirmDelete} disabled={deleting}>
-              {deleting ? "Suppression..." : "Supprimer"}
+            <Button onClick={confirmDelete}>
+              Supprimer
             </Button>
           </div>
         </div>

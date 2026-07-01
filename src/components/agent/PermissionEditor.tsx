@@ -6,6 +6,7 @@ import Button from '@/components/ui/button/Button';
 import Badge from '@/components/ui/badge/Badge';
 import { PERMISSION_LABELS } from '@/types/agent';
 import { updateAgentPermissions } from '@/app/actions/user.actions';
+import { useLoader } from '@/context/LoaderContext';
 
 interface PermissionEditorProps {
   isOpen: boolean;
@@ -34,8 +35,8 @@ export default function PermissionEditor({
   currentPermissions,
   onSuccess,
 }: PermissionEditorProps) {
+  const { showLoader, hideLoader } = useLoader();
   const [selected, setSelected] = useState<string[]>(currentPermissions);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const togglePermission = (perm: string) => {
@@ -46,14 +47,14 @@ export default function PermissionEditor({
 
   const handleSave = async () => {
     setError('');
-    setLoading(true);
+    showLoader('Mise à jour des permissions...');
 
     try {
       const result = await updateAgentPermissions(agentId, selected);
 
       if (!result.success) {
         setError(result.error || 'Erreur lors de la mise à jour.');
-        setLoading(false);
+        hideLoader();
         return;
       }
 
@@ -62,7 +63,7 @@ export default function PermissionEditor({
     } catch (err: any) {
       setError(err.message || 'Erreur réseau.');
     } finally {
-      setLoading(false);
+      hideLoader();
     }
   };
 
@@ -114,11 +115,11 @@ export default function PermissionEditor({
         </div>
 
         <div className="mt-6 flex items-center justify-end gap-3">
-          <Button variant="outline" onClick={onClose} disabled={loading}>
+          <Button variant="outline" onClick={onClose}>
             Annuler
           </Button>
-          <Button onClick={handleSave} disabled={loading}>
-            {loading ? 'Enregistrement...' : 'Enregistrer'}
+          <Button onClick={handleSave}>
+            Enregistrer
           </Button>
         </div>
       </div>

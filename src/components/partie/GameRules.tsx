@@ -1,20 +1,18 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, Clock, XCircle, Ticket, Rocket, Loader2 } from 'lucide-react';
+import { Sparkles, Clock, XCircle, Ticket, Rocket } from 'lucide-react';
 
 interface GameRulesProps {
   categorieName: string;
   partiesRestantes: number;
   onStart: () => void;
-  loading: boolean;
 }
 
 const GameRules: React.FC<GameRulesProps> = ({
   categorieName,
   partiesRestantes,
   onStart,
-  loading,
 }) => {
   return (
     <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
@@ -95,21 +93,12 @@ const GameRules: React.FC<GameRulesProps> = ({
       {/* Bouton */}
       <button
         onClick={onStart}
-        disabled={loading || partiesRestantes <= 0}
+        disabled={partiesRestantes <= 0}
         className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:bg-brand-600 hover:shadow-xl hover:shadow-brand-500/30 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 animate-slideUp"
         style={{ animationDelay: '0.55s' }}
       >
-        {loading ? (
-          <>
-            <Loader2 className="h-5 w-5 animate-spin" />
-            Préparation...
-          </>
-        ) : (
-          <>
-            <Rocket className="h-5 w-5" />
-            Commencer la partie
-          </>
-        )}
+        <Rocket className="h-5 w-5" />
+        Commencer la partie
       </button>
 
       {partiesRestantes <= 0 && (
