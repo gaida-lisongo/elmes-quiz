@@ -26,6 +26,21 @@ import type { PipelineStage } from "mongoose";
 // Taux de conversion : 1 USD = 2850 CDF (à adapter selon le taux du jour)
 const USD_TO_CDF_RATE = 2200;
 
+const converUSDToCDF = (amountUSD: number) => {
+  if(!amountUSD || amountUSD <= 0) return 0;
+
+  switch (amountUSD) {
+    case 1:
+      return 3000;
+    case 2:
+      return 5000;
+    case 4:
+      return 10000;
+    default:
+      return 0;
+  }
+};
+
 export async function rechargePlayerAction(
   playerId: string,
   phone: string,
@@ -58,7 +73,7 @@ export async function rechargePlayerAction(
 
     // 2. Montant stocké en CDF dans la DB
     //    Si la devise est USD, on convertit en FC pour l'enregistrement
-    const amountCDF = currency === 'USD' ? Math.round(amount * USD_TO_CDF_RATE) : amount;
+    const amountCDF = currency === 'USD' ? converUSDToCDF(amount) : amount;
     //    Montant envoyé au provider : en CDF ou USD selon la devise choisie
     const amountProvider = amount;
     const providerCurrency = currency;
