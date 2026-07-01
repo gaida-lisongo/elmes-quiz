@@ -9,6 +9,8 @@ import {
   TableRow,
 } from "../ui/table";
 import { getLeaderboard, type LeaderboardEntry } from "@/app/actions/leaderboard.actions";
+import { addBonusParties } from "@/app/actions/bonus.actions";
+import { Gift } from "lucide-react";
 
 /* ── Labels & couleurs des 4 niveaux ── */
 const LEVEL_META: Record<number, { label: string; color: string }> = {
@@ -30,11 +32,29 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
   currentUserEntry,
   isPlayer = false,
 }) => {
-  const [top10, setTop10] = useState<LeaderboardEntry[]>(initialData);
+  const [entries, setEntries] = useState<LeaderboardEntry[]>(initialData);
   const [searchedEntry, setSearchedEntry] = useState<LeaderboardEntry | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [bonusLoading, setBonusLoading] = useState<string | null>(null);
+  const [bonusMsg, setBonusMsg] = useState<{ userId: string; text: string } | null>(null);
+
+  const fetchPage = useCallback(async (p: number) => {
+    setLoading(true);
+    try {
+      const result = await getLeaderboard(undefined, undefined, p, 20);
+      setEntries(result.top10);
+      setTotalPages(result.totalPages);
+      setPage(result.currentPage);
+    } catch {
+      // silence
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) {
@@ -44,9 +64,11 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
     }
     setLoading(true);
     try {
-      const result = await getLeaderboard(searchQuery);
-      setTop10(result.top10);
+      const result = await getLeaderboard(searchQuery, undefined, 1, 20);
+      setEntries(result.top10);
       setSearchedEntry(result.searchedEntry);
+      setTotalPages(result.totalPages);
+      setPage(1);
       setSearched(true);
     } catch {
       // silence
@@ -59,18 +81,60 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
     setSearchQuery("");
     setSearchedEntry(null);
     setSearched(false);
-    setLoading(true);
+    setPage(1);
+    await fetchPage(1);
+  }, [fetchPage]);
+
+  const handleBonus = useCallback(async (playerUserId: string, pseudo: string) => {
+    setBonusLoading(playerUserId);
+    setBonusMsg(null);
     try {
-      const result = await getLeaderboard();
-      setTop10(result.top10);
+      const result = await addBonusParties(playerUserId, 3);
+      if (result.success) {
+        setBonusMsg({ userId: playerUserId, text: `+3 parties !` });
+        // Mettre à jour l'affichage local
+        setEntries((prev) =>
+          prev.map((e) =>
+            e.userId === playerUserId
+              ? { ...e, parties: result.newParties ?? e.parties }
+              : e
+          )
+        );
+      } else {
+        setBonusMsg({ userId: playerUserId, text: result.error || "Erreur" });
+      }
     } catch {
-      // silence
+      setBonusMsg({ userId: playerUserId, text: "Erreur" });
     } finally {
-      setLoading(false);
+      setBonusLoading(null);
+      setTimeout(() => setBonusMsg(null), 3000);
     }
   }, []);
 
-  const displayEntries = searchedEntry ? [searchedEntry] : top10;
+  const displayEntries = searchedEntry ? [searchedEntry] : entries;
+
+  const BonusCell = (entry: LeaderboardEntry) => {
+    if (isPlayer) return null;
+    const loadingThis = bonusLoading === entry.userId;
+    const msg = bonusMsg?.userId === entry.userId ? bonusMsg.text : null;
+    return (
+      <TableCell className="py-3">
+        <button
+          onClick={() => handleBonus(entry.userId, entry.pseudo)}
+          disabled={loadingThis}
+          className="inline-flex items-center gap-1 rounded-lg bg-brand-50 px-2.5 py-1.5 text-theme-xs font-medium text-brand-600 hover:bg-brand-100 disabled:opacity-50 transition-colors dark:bg-brand-500/10 dark:text-brand-400 dark:hover:bg-brand-500/20"
+          title="Ajouter 3 parties bonus"
+        >
+          {loadingThis ? (
+            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-brand-600 border-t-transparent dark:border-brand-400" />
+          ) : (
+            <Gift className="h-3.5 w-3.5" />
+          )}
+          {msg || "+3"}
+        </button>
+      </TableCell>
+    );
+  };
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
@@ -170,6 +234,11 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
               <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                 Score total
               </TableCell>
+              {!isPlayer && (
+                <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 w-20">
+                  Bonus
+                </TableCell>
+              )}
             </TableRow>
           </TableHeader>
 
@@ -238,6 +307,9 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
                       {entry.totalScore.toLocaleString()} pts
                     </span>
                   </TableCell>
+
+                  {/* Bonus (agent uniquement) */}
+                  {!isPlayer && BonusCell(entry)}
                 </TableRow>
               );
             })}
@@ -245,6 +317,7 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
             {displayEntries.length === 0 && (
               <TableRow>
                 <TableCell
+                  colSpan={isPlayer ? 5 : 7}
                   className="py-8 text-center text-gray-500 dark:text-gray-400"
                 >
                   Aucun joueur trouvé.
@@ -255,17 +328,58 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
         </Table>
       </div>
 
+      {/* Pagination (agent uniquement) */}
+      {!isPlayer && !searched && totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-center gap-2">
+          <button
+            onClick={() => fetchPage(page - 1)}
+            disabled={page <= 1 || loading}
+            className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-theme-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+          >
+            ← Précédent
+          </button>
+          {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+            const startPage = Math.max(1, page - 2);
+            const p = startPage + i;
+            if (p > totalPages) return null;
+            return (
+              <button
+                key={p}
+                onClick={() => fetchPage(p)}
+                disabled={loading}
+                className={`inline-flex h-8 w-8 items-center justify-center rounded-lg text-theme-sm font-medium transition-colors ${
+                  p === page
+                    ? "bg-brand-500 text-white"
+                    : "border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+                }`}
+              >
+                {p}
+              </button>
+            );
+          })}
+          <button
+            onClick={() => fetchPage(page + 1)}
+            disabled={page >= totalPages || loading}
+            className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-theme-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+          >
+            Suivant →
+          </button>
+        </div>
+      )}
+
       {/* Info pied de tableau */}
-      {!searched && top10.length > 0 && (
+      {!searched && entries.length > 0 && (
         <p className="mt-3 text-center text-theme-xs text-gray-400 dark:text-gray-500">
-          Affichage des {top10.length} meilleurs joueurs
+          {isPlayer
+            ? `Affichage des ${entries.length} meilleurs joueurs`
+            : `Page ${page} / ${totalPages} — ${entries.length} joueurs`}
         </p>
       )}
 
       {/* Vue mobile allégée pour le Player (top 5 sans parties restantes/jouées des autres) */}
       {isPlayer && (
         <div className="lg:hidden space-y-3">
-          {top10.slice(0, 5).map((entry) => {
+          {entries.slice(0, 5).map((entry) => {
             const levelMeta = LEVEL_META[entry.level] ?? LEVEL_META[0];
             return (
               <div

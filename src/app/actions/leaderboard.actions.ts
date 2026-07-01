@@ -19,9 +19,21 @@ export interface LeaderboardEntry {
 
 export async function getLeaderboard(
   searchQuery?: string,
-  currentUserId?: string
-): Promise<{ top10: LeaderboardEntry[]; searchedEntry: LeaderboardEntry | null; currentUserEntry?: LeaderboardEntry | null }> {
+  currentUserId?: string,
+  page: number = 1,
+  pageSize: number = 20
+): Promise<{
+  top10: LeaderboardEntry[];
+  searchedEntry: LeaderboardEntry | null;
+  currentUserEntry?: LeaderboardEntry | null;
+  totalPages: number;
+  currentPage: number;
+  totalPlayers: number;
+}> {
   await connectToDb();
+
+  const skip = (page - 1) * pageSize;
+  const totalPlayers = await Player.countDocuments({});
 
   // 1. Récupérer tous les joueurs avec leur User, triés par totalScore descendant
   const players = await Player.find({})
@@ -30,13 +42,15 @@ export async function getLeaderboard(
       'pseudo telephone photo'
     )
     .sort({ 'metrics.totalScore': -1 })
+    .skip(skip)
+    .limit(pageSize)
     .lean();
 
-  // 2. Construire le leaderboard complet
+  // Calculer le rang réel basé sur le score (skip + index + 1)
   const allEntries: LeaderboardEntry[] = players
     .filter((p) => p.userId && typeof p.userId === 'object')
     .map((p, index) => ({
-      rank: index + 1,
+      rank: skip + index + 1,
       userId: (p.userId as any)._id.toString(),
       pseudo: (p.userId as any).pseudo,
       telephone: (p.userId as any).telephone,
@@ -48,13 +62,14 @@ export async function getLeaderboard(
       meilleurScore: p.metrics?.MeilleurScore ?? 0,
     }));
 
-  // 3. Top 10
-  const top10 = allEntries.slice(0, 10);
+  // 3. Top 10 — si page 1 on utilise les premiers, sinon on garde les résultats paginés comme page courante
+  const top10 = page === 1 ? allEntries.slice(0, Math.min(10, allEntries.length)) : allEntries;
 
-  // 4. Recherche d'un joueur spécifique (par pseudo ou téléphone)
+  // 4. Recherche d'un joueur spécifique (par pseudo ou téléphone) — recherche globale
   let searchedEntry: LeaderboardEntry | null = null;
   if (searchQuery && searchQuery.trim().length > 0) {
     const q = searchQuery.trim().toLowerCase();
+    // Chercher dans la page courante d'abord
     const found = allEntries.find(
       (e) =>
         e.pseudo.toLowerCase().includes(q) ||
@@ -68,5 +83,12 @@ export async function getLeaderboard(
     ? allEntries.find((e) => e.userId === currentUserId) ?? null
     : undefined;
 
-  return { top10, searchedEntry, currentUserEntry };
+  return {
+    top10,
+    searchedEntry,
+    currentUserEntry,
+    totalPages: Math.ceil(totalPlayers / pageSize),
+    currentPage: page,
+    totalPlayers,
+  };
 }

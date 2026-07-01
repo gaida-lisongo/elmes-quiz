@@ -37,10 +37,11 @@ export default function SignInForm({ refSlug }: { refSlug?: string }) {
 
       if (!result.success) {
         setError(result.error || 'Identifiants incorrects.');
+        hideLoader();
         return;
       }
 
-      hideLoader();
+      // Le loader reste affiché pendant la navigation — auto-caché par LoaderProvider au changement de route
       router.push('/');
       router.refresh();
     } catch (err: any) {

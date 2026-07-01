@@ -14,6 +14,8 @@ interface LogoProps {
   className?: string;
   /** Si true, le logo est un lien vers la page d'accueil */
   link?: boolean;
+  /** Callback au clic sur le logo (pour loader de navigation) */
+  onClick?: () => void;
 }
 
 const Logo: React.FC<LogoProps> = ({
@@ -22,6 +24,7 @@ const Logo: React.FC<LogoProps> = ({
   variant = "full",
   className = "",
   link = true,
+  onClick,
 }) => {
   const iconSize = variant === "icon" ? { width: 32, height: 32 } : { width, height };
 
@@ -38,7 +41,7 @@ const Logo: React.FC<LogoProps> = ({
 
   if (link) {
     return (
-      <Link href="/" className="inline-flex items-center">
+      <Link href="/" className="inline-flex items-center" onClick={onClick}>
         {imageElement}
       </Link>
     );

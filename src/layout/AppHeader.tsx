@@ -47,7 +47,7 @@ const AppHeader: React.FC<{ user: any }> = ({ user }) => {
     <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
       <div className="flex items-center justify-between w-full px-4 py-2.5 lg:px-6 lg:py-3">
         {/* Logo */}
-        <Logo width={56} height={56} />
+        <Logo width={56} height={56} onClick={() => showLoader("Navigation...")} />
 
         {/* Mobile menu toggle */}
         <button

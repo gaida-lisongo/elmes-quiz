@@ -40,16 +40,16 @@ export default function SignUpForm({ refSlug }: { refSlug?: string }) {
       const result = await registerPlayer(formData);
 
       if (!result.success) {
-        setError(result.error || 'Erreur lors de l\'inscription.');
+        setError(result.error || "Erreur lors de l'inscription.");
         hideLoader();
         return;
       }
 
-      hideLoader();
+      // Le loader reste affiché pendant la navigation — auto-caché par LoaderProvider au changement de route
       router.push('/');
       router.refresh();
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de l\'inscription.');
+      setError(err.message || "Erreur lors de l'inscription.");
       hideLoader();
     }
   };
