@@ -12,17 +12,19 @@ interface RechargeFormProps {
 }
 
 type PaymentMethod = "mobile-money" | "card";
+type Currency = "CDF" | "USD";
 
 const levels = [
-  { value: 1, label: "ELEMBO", price: 3000, games: 15, icon: Zap, color: "text-blue-500", desc: "15 parties" },
-  { value: 2, label: "MOTUYA", price: 5000, games: 25, icon: Star, color: "text-purple-500", desc: "25 parties" },
-  { value: 3, label: "ELONGA", price: 10000, games: 60, icon: Sparkles, color: "text-amber-500", desc: "50 + 10 parties" },
+  { value: 1, label: "ELEMBO", priceCDF: 3000, priceUSD: 1, games: 15, icon: Zap, color: "text-blue-500", desc: "15 parties" },
+  { value: 2, label: "MOTUYA", priceCDF: 5000, priceUSD: 2, games: 25, icon: Star, color: "text-purple-500", desc: "25 parties" },
+  { value: 3, label: "ELONGA", priceCDF: 10000, priceUSD: 4, games: 60, icon: Sparkles, color: "text-amber-500", desc: "50 + 10 parties" },
 ];
 
 export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFormProps) {
   const { showLoader, hideLoader } = useLoader();
   const [activeTab, setActiveTab] = useState<PaymentMethod>("mobile-money");
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
+  const [currency, setCurrency] = useState<Currency>("CDF");
   const [transactionPhone, setTransactionPhone] = useState(phone || "");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -36,10 +38,10 @@ export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFor
     const level = levels.find((l) => l.value === selectedLevel);
     if (!level) return;
 
-    const amount = level.price;
+    const amount = currency === "CDF" ? level.priceCDF : level.priceUSD;
 
     try {
-      const result = await rechargePlayerAction(playerId, transactionPhone, selectedLevel, amount);
+      const result = await rechargePlayerAction(playerId, transactionPhone, selectedLevel, amount, currency);
 
       if (result.success) {
         setMessage({
@@ -62,7 +64,7 @@ export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFor
   };
 
   const selectedPrice = selectedLevel
-    ? levels.find((l) => l.value === selectedLevel)?.price
+    ? levels.find((l) => l.value === selectedLevel)?.[currency === "CDF" ? "priceCDF" : "priceUSD"]
     : null;
 
   return (
@@ -107,6 +109,49 @@ export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFor
         </div>
       ) : (
         <>
+          {/* Sélecteur de devise */}
+          <div>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Devise
+            </p>
+            <div className="flex gap-2">
+              {(["CDF", "USD"] as Currency[]).map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setCurrency(c)}
+                  className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                    currency === c
+                      ? "border-brand-500 bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400"
+                      : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
+                  }`}
+                >
+                  {c} — {c === "CDF" ? "Francs" : "Dollars"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Numéro de téléphone */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Numéro Mobile Money
+            </label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="tel"
+                value={transactionPhone}
+                onChange={(e) => setTransactionPhone(e.target.value)}
+                placeholder="243XXXXXXXXX"
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 pl-10 pr-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all"
+              />
+            </div>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              Ce numéro sera utilisé pour la transaction.
+            </p>
+          </div>
+
           {/* Sélecteur de niveau */}
           <div>
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
@@ -116,6 +161,7 @@ export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFor
               {levels.map((level) => {
                 const Icon = level.icon;
                 const isSelected = selectedLevel === level.value;
+                const price = currency === "CDF" ? level.priceCDF : level.priceUSD;
                 return (
                   <button
                     key={level.value}
@@ -133,7 +179,7 @@ export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFor
                         {level.label}
                       </p>
                       <p className={`text-xs font-medium mt-0.5 ${isSelected ? "text-brand-600 dark:text-brand-400" : "text-gray-500"}`}>
-                        {level.price.toLocaleString("fr-FR")} FC
+                        {price.toLocaleString("fr-FR")} {currency}
                       </p>
                       <p className="text-xs text-gray-400 dark:text-gray-500">{level.desc}</p>
                     </div>
@@ -166,7 +212,7 @@ export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFor
                   Montant
                 </span>
                 <span className="font-bold text-lg text-gray-900 dark:text-white">
-                  {selectedPrice?.toLocaleString("fr-FR")} FC
+                  {selectedPrice?.toLocaleString("fr-FR")} {currency}
                 </span>
               </div>
             </div>
