@@ -15,9 +15,9 @@ type PaymentMethod = "mobile-money" | "card";
 type Currency = "CDF" | "USD";
 
 const levels = [
-  { value: 1, label: "ELEMBO", priceCDF: 3000, priceUSD: 1, games: 15, icon: Zap, color: "text-blue-500", desc: "15 parties" },
-  { value: 2, label: "MOTUYA", priceCDF: 5000, priceUSD: 2, games: 25, icon: Star, color: "text-purple-500", desc: "25 parties" },
-  { value: 3, label: "ELONGA", priceCDF: 10000, priceUSD: 4, games: 60, icon: Sparkles, color: "text-amber-500", desc: "50 + 10 parties" },
+  { value: 1, label: "ELEMBO", price: 3000, priceUSD: 1, games: 15, icon: Zap, color: "text-blue-500", desc: "15 parties" },
+  { value: 2, label: "MOTUYA", price: 5000, priceUSD: 2, games: 25, icon: Star, color: "text-purple-500", desc: "25 parties" },
+  { value: 3, label: "ELONGA", price: 10000, priceUSD: 4, games: 60, icon: Sparkles, color: "text-amber-500", desc: "50 + 10 parties" },
 ];
 
 export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFormProps) {
@@ -38,7 +38,8 @@ export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFor
     const level = levels.find((l) => l.value === selectedLevel);
     if (!level) return;
 
-    const amount = currency === "CDF" ? level.priceCDF : level.priceUSD;
+    // Montant selon la devise choisie
+    const amount = currency === "CDF" ? level.price : level.priceUSD;
 
     try {
       const result = await rechargePlayerAction(playerId, transactionPhone, selectedLevel, amount, currency);
@@ -64,7 +65,7 @@ export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFor
   };
 
   const selectedPrice = selectedLevel
-    ? levels.find((l) => l.value === selectedLevel)?.[currency === "CDF" ? "priceCDF" : "priceUSD"]
+    ? levels.find((l) => l.value === selectedLevel)?.price
     : null;
 
   return (
@@ -126,7 +127,7 @@ export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFor
                       : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
                   }`}
                 >
-                  {c} — {c === "CDF" ? "Francs" : "Dollars"}
+                  {c}
                 </button>
               ))}
             </div>
@@ -161,7 +162,6 @@ export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFor
               {levels.map((level) => {
                 const Icon = level.icon;
                 const isSelected = selectedLevel === level.value;
-                const price = currency === "CDF" ? level.priceCDF : level.priceUSD;
                 return (
                   <button
                     key={level.value}
@@ -179,7 +179,7 @@ export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFor
                         {level.label}
                       </p>
                       <p className={`text-xs font-medium mt-0.5 ${isSelected ? "text-brand-600 dark:text-brand-400" : "text-gray-500"}`}>
-                        {price.toLocaleString("fr-FR")} {currency}
+                        {level.price.toLocaleString("fr-FR")} FC
                       </p>
                       <p className="text-xs text-gray-400 dark:text-gray-500">{level.desc}</p>
                     </div>
@@ -212,7 +212,7 @@ export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFor
                   Montant
                 </span>
                 <span className="font-bold text-lg text-gray-900 dark:text-white">
-                  {selectedPrice?.toLocaleString("fr-FR")} {currency}
+                  {selectedPrice?.toLocaleString("fr-FR")} FC ({currency})
                 </span>
               </div>
             </div>
