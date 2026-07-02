@@ -15,9 +15,9 @@ type PaymentMethod = "mobile-money" | "card";
 type Currency = "CDF" | "USD";
 
 const levels = [
-  { value: 1, label: "ELEMBO", price: 3000, priceUSD: 1, games: 15, icon: Zap, color: "text-blue-500", desc: "15 parties" },
-  { value: 2, label: "MOTUYA", price: 5000, priceUSD: 2, games: 25, icon: Star, color: "text-purple-500", desc: "25 parties" },
-  { value: 3, label: "ELONGA", price: 10000, priceUSD: 4, games: 60, icon: Sparkles, color: "text-amber-500", desc: "50 + 10 parties" },
+  { value: 1, label: "ELEMBO", price: 1000, priceUSD: 0.5, games: 15, icon: Zap, color: "text-blue-500", desc: "15 parties" },
+  { value: 2, label: "MOTUYA", price: 3500, priceUSD: 1.5, games: 45, icon: Star, color: "text-purple-500", desc: "25 parties" },
+  { value: 3, label: "ELONGA", price: 5000, priceUSD: 2, games: 80, icon: Sparkles, color: "text-amber-500", desc: "50 + 10 parties" },
 ];
 
 export default function RechargeForm({ playerId, phone, onSuccess }: RechargeFormProps) {

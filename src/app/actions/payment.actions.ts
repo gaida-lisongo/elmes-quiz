@@ -141,6 +141,7 @@ export async function rechargePlayerAction(
 export async function checkRechargeStatusAction(
   playerId: string,
   rechargeIndex: number,
+  parties: number = 0
 ) {
   try {
     await connectToDb();
@@ -180,19 +181,13 @@ export async function checkRechargeStatusAction(
 
     // Si la collecte est confirmée → créditer les parties du joueur
     if (newStatus === "SUCCES") {
-      // Le montant est toujours stocké en CDF → Montant / 200 = nombre de parties gagnées
-      let partiesGagnees = Math.floor(recharge.amount / 200);
-      // ELONGA (targetLevel 3) : 50 parties + 10 de bonus = 60 parties
-      if (recharge.targetLevel === 3) {
-        partiesGagnees += 10;
-      }
-      player.parties += partiesGagnees;
+      player.parties += parties;
 
       // Bonus parrainage : +3 parties pour le parrain si referedBy est défini
       if (player.referedBy) {
         const parrain = await Player.findById(player.referedBy);
         if (parrain) {
-          parrain.parties += 3;
+          parrain.parties += parties / 5; // 20% de bonus pour le parrain
           await parrain.save();
         }
       }

@@ -68,8 +68,8 @@ const statusConfig = {
 
 const niveauParCarte: Record<number, { name: string; icon: React.ReactNode; games: number }> = {
   1: { name: "ELEMBO", icon: <Zap className="w-3.5 h-3.5" />, games: 15 },
-  2: { name: "MOTUYA", icon: <Star className="w-3.5 h-3.5" />, games: 25 },
-  3: { name: "ELONGA", icon: <Sparkles className="w-3.5 h-3.5" />, games: 60 },
+  2: { name: "MOTUYA", icon: <Star className="w-3.5 h-3.5" />, games: 45 },
+  3: { name: "ELONGA", icon: <Sparkles className="w-3.5 h-3.5" />, games: 80 },
 };
 
 function formatDate(date: Date): string {
